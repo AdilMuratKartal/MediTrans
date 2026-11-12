@@ -1,0 +1,429 @@
+<!DOCTYPE html><html class="h-full" lang="tr"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>MediTrans - Uyku Hikayeleri</title>
+<!-- Google Fonts: Inter & Plus Jakarta Sans & Cormorant Garamond for peaceful reading -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS CDN with Forms & Container Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Cormorant Garamond"', 'serif']
+          },
+          colors: {
+            night: {
+              950: '#060814',
+              900: '#0b0f24',
+              800: '#141a38',
+              700: '#1d254e'
+            },
+            dream: {
+              gold: '#ffd285',
+              lavender: '#c4b5fd',
+              moon: '#e2e8f0',
+              accent: '#818cf8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Backdrop Blurs and Delicate Scrollbars -->
+<style data-purpose="custom-layout">
+    /* Custom delicate scrollbar for story narration text */
+    .story-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .story-scroll::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 9999px;
+    }
+    .story-scroll::-webkit-scrollbar-thumb {
+      background: rgba(196, 181, 253, 0.25);
+      border-radius: 9999px;
+    }
+    .story-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(196, 181, 253, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-night-950 text-slate-100 font-sans antialiased selection:bg-purple-500/30 min-h-screen flex justify-center items-center p-0 sm:p-4">
+<!-- BEGIN: MobileDeviceContainer -->
+<!-- Constrained strictly to iOS mobile aspect ratio for immersive mobile experience -->
+<div class="relative w-full max-w-[420px] h-[100dvh] max-h-[920px] sm:h-[880px] bg-night-900 sm:rounded-[44px] overflow-hidden shadow-2xl flex flex-col border border-white/10" data-purpose="mobile-viewport-shell">
+<!-- BEGIN: AtmosphericBackground -->
+<!-- Dynamic cosmic background backdrop with overlay -->
+<div class="absolute inset-0 pointer-events-none z-0" data-purpose="background-layer">
+<img alt="Hikaye Arka Plan" class="w-full h-full object-cover object-center transition-all duration-700 scale-105 filter brightness-75 contrast-110" id="dynamic-bg-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWm3Hs4zgj5vlc284Cal6DHZxeRltkrJjIY6EC__KGiB4Hl08LfEBY9CMgE7OArA-PSijW6Avyd3sYUa4WXGGBha__o91DgoYbL3i_ooD3bv6ZqWtz7gsaN6pZKuGm9kiGFceGciJg31FQiPfekSOs-_KZkv-lgOWeIsWt8cGfs52NtnUiiJdfiod8f5Fnb35q_-2MRP1UdQl5JzxWwSQ9RjIwnUNtaA78uWT6juTK3JtV8Smi_Zsw">
+<div class="absolute inset-0 bg-gradient-to-b from-night-950/70 via-night-950/80 to-night-950"></div>
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-500/15 via-transparent to-transparent"></div>
+</div>
+<!-- END: AtmosphericBackground -->
+<!-- BEGIN: iOSStatusBar -->
+<div class="relative z-30 pt-3 px-7 flex justify-between items-center text-xs text-white/70 select-none" data-purpose="ios-status-bar">
+<span class="font-semibold tracking-tight">22:45</span>
+<div class="w-20 h-4 bg-black/40 rounded-full mx-auto backdrop-blur-md border border-white/5"></div>
+<div class="flex items-center space-x-1.5">
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25A10.95 10.95 0 0 1 1 12C1 5.92 5.92 1 12 1s11 4.92 11 11c0 2.33-.73 4.49-1.97 6.25l-.62-.64C21.43 16.07 22 14.12 22 12c0-4.97-4.03-9-9-9z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M2 17h20v-2H2v2zm0-4h20v-2H2v2zm0-6v2h20V7H2z"></path></svg>
+<span class="text-[10px] font-bold">100%</span>
+</div>
+</div>
+<!-- END: iOSStatusBar -->
+<!-- BEGIN: TopNavigationHeader -->
+<header class="relative z-20 px-5 pt-3 pb-2 flex items-center justify-between" data-purpose="top-navigation">
+<button aria-label="Geri Dön" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 backdrop-blur-md border border-white/10 transition-all text-sm text-slate-200" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-xs font-medium">Uyku</span>
+</button>
+<div class="text-center">
+<h1 class="text-sm font-semibold tracking-wide text-white uppercase letter-spacing-wide">Uyku Hikayeleri</h1>
+<span class="text-[10px] text-dream-lavender/70 flex items-center justify-center gap-1 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+          Gece Modu Aktif
+        </span>
+</div>
+<!-- Sleep Timer Badge -->
+<button aria-label="Uyku Zamanlayıcı" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 text-xs backdrop-blur-md" type="button">
+<span class="text-dream-gold text-xs">🌙</span>
+<span class="font-medium text-[11px]" id="timer-badge">45 dk</span>
+</button>
+</header>
+<!-- END: TopNavigationHeader -->
+<!-- Scrollable Body Content Wrapper -->
+<div class="relative z-10 flex-1 overflow-y-auto px-5 pb-36 story-scroll space-y-4 pt-1" data-purpose="story-scroll-container">
+<!-- BEGIN: StorySelectorCards -->
+<!-- Mini Switcher to toggle between Story 1 & Story 2 -->
+<section aria-label="Mevcut Hikayeler" data-purpose="story-selector-carousel">
+<div class="flex items-center justify-between mb-2 px-1">
+<span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">HİKAYE SEÇİMİ</span>
+<span class="text-[11px] text-slate-400 font-medium">2 Masal Hazır</span>
+</div>
+<div class="grid grid-cols-2 gap-3" role="tablist">
+<!-- Story 1 Option Card (Default Active) -->
+<button aria-selected="true" class="group relative text-left rounded-2xl overflow-hidden p-2.5 transition-all duration-300 border-2 border-indigo-400/80 bg-white/10 shadow-lg shadow-indigo-900/30 focus:outline-none" id="tab-story-1" onclick="switchStory(1)" role="tab" type="button">
+<div class="relative h-20 w-full rounded-xl overflow-hidden mb-2">
+<img alt="Ay Işığında Fısıltılar" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWm3Hs4zgj5vlc284Cal6DHZxeRltkrJjIY6EC__KGiB4Hl08LfEBY9CMgE7OArA-PSijW6Avyd3sYUa4WXGGBha__o91DgoYbL3i_ooD3bv6ZqWtz7gsaN6pZKuGm9kiGFceGciJg31FQiPfekSOs-_KZkv-lgOWeIsWt8cGfs52NtnUiiJdfiod8f5Fnb35q_-2MRP1UdQl5JzxWwSQ9RjIwnUNtaA78uWT6juTK3JtV8Smi_Zsw">
+<span class="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-md text-[9px] px-1.5 py-0.5 rounded-md text-dream-gold font-medium">28 Dk</span>
+<div class="absolute bottom-1 left-1.5">
+<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/90 text-white">
+<svg class="w-2.5 h-2.5 fill-current ml-0.5" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+</span>
+</div>
+</div>
+<p class="text-xs font-semibold text-white leading-tight truncate">Ay Işığında Fısıltılar</p>
+<p class="text-[10px] text-slate-300/80 truncate">Doğa &amp; Su Sesleri</p>
+</button>
+<!-- Story 2 Option Card -->
+<button aria-selected="false" class="group relative text-left rounded-2xl overflow-hidden p-2.5 transition-all duration-300 border border-white/10 hover:border-white/30 bg-black/30 focus:outline-none opacity-75 hover:opacity-100" id="tab-story-2" onclick="switchStory(2)" role="tab" type="button">
+<div class="relative h-20 w-full rounded-xl overflow-hidden mb-2">
+<img alt="Yıldızların Altındaki Kulübe" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJ8MbaeOOn5JmkHl83jA2QfLLY_9KGKtMl72IPa3s1FpM4t4KaX0J1b_k-SMaMMAPqNderbT3n7VqEK0yw1iBkE8n71x_ALs52_F7fJX1mNs0nBwRuYiZDUOps6K5lFVGca4MzjGaJ4wHjweweLIpWAPcf91HsBdmvLid_7zsPqS-Uw0hgd5DEq4PON_FAay4tFxS45PPPnFaQwW1HfTp9UrCyV20b36chXtDZxGuvYlu4_IujQG1M">
+<span class="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-md text-[9px] px-1.5 py-0.5 rounded-md text-slate-200 font-medium">34 Dk</span>
+</div>
+<p class="text-xs font-semibold text-slate-200 leading-tight truncate">Yıldızların Altındaki Kulübe</p>
+<p class="text-[10px] text-slate-400 truncate">Sıcak Şömine &amp; Dağ</p>
+</button>
+</div>
+</section>
+<!-- END: StorySelectorCards -->
+<!-- BEGIN: StoryHeaderSection -->
+<!-- Required: "HİKAYE BAŞLIĞI MEDYA OYNATICISININ YUKARISINDA KALSIN" -->
+<section class="pt-1 text-center" data-purpose="current-story-header">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-2">
+<span class="w-1.5 h-1.5 rounded-full bg-dream-gold"></span>
+<span class="text-[11px] font-medium text-slate-300 tracking-wide" id="story-genre">Huzurlu Orman Masalı</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight text-white mb-1 drop-shadow" id="story-title">Ay Işığında Fısıltılar</h2>
+<div class="flex items-center justify-center space-x-3 text-xs text-dream-lavender/90 font-medium">
+<span class="flex items-center gap-1" id="story-narrator">
+<svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Canan G.
+          </span>
+<span>•</span>
+<span class="text-slate-300" id="story-duration">28:15 Toplam</span>
+<span>•</span>
+<span class="text-dream-gold">432 Hz Şifa Tonu</span>
+</div>
+</section>
+<!-- END: StoryHeaderSection -->
+<!-- BEGIN: StoryTextSection -->
+<!-- Moved right under the Story Header, scrollable and comfortably readable -->
+<section class="rounded-3xl bg-slate-900/40 backdrop-blur-md border border-white/10 p-5 space-y-3" data-purpose="story-reading-panel">
+<div class="flex items-center justify-between border-b border-white/10 pb-2">
+<div class="flex items-center space-x-2">
+<svg class="w-4 h-4 text-dream-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<h3 class="text-xs font-semibold uppercase tracking-wider text-slate-200">Hikaye Metni &amp; Takip</h3>
+</div>
+<button class="text-[11px] text-dream-lavender/80 hover:text-white px-2 py-0.5 rounded bg-white/5 border border-white/5" id="font-size-btn" onclick="toggleFontSize()" type="button">
+            Yazı: A+
+          </button>
+</div>
+<!-- Actual Story Content with Atmospheric Typography -->
+<article class="text-slate-200/90 font-serif leading-relaxed text-base space-y-4 tracking-normal transition-all duration-300" id="story-content">
+<p class="first-letter:text-3xl first-letter:font-semibold first-letter:text-dream-gold first-letter:mr-1">
+            Gece vadinin üzerine usulca çökerken, gökyüzündeki dolunayın gümüş ışıltısı sakin sakin akan nehrin yüzeyine yansıyordu. Ağaçların yaprakları hafif bir esintiyle kıpırdıyor, doğa günün yorgunluğunu serin ve derin bir nefesle bırakıyordu.
+          </p>
+<p class="text-slate-300/80">
+            Kıyıdaki sazlıkların arasından yükselen su şıpırtıları, zihnindeki tüm düşünceleri bir bir temizleyen bir ninniye dönüşüyordu. Her nefes alışında nehrin taze kokusu göğsünü dolduruyor, her nefes verişinde omuzlarındaki ağırlık suya karışıp eriyip gidiyordu.
+          </p>
+<p class="text-slate-400 italic text-sm border-l-2 border-indigo-400/40 pl-3">
+            "Şimdi gözlerini yavaşça dinlendir... Nehir senin yerine akmaya devam edecek, ay ışığı rüyalarını koruyacak."
+          </p>
+</article>
+<!-- Ambient Auto-Scroll Footnote -->
+<div class="flex items-center justify-between pt-2 text-[10px] text-slate-400">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-400/80"></span>
+            Ses ile Senkronize
+          </span>
+<button class="text-dream-lavender hover:underline" type="button">Otomatik Akış: Açık</button>
+</div>
+</section>
+<!-- END: StoryTextSection -->
+</div>
+<!-- BEGIN: CompactBottomMediaPlayer -->
+<!-- Compact fixed mini player docked above bottom navigation -->
+<aside class="absolute bottom-[60px] inset-x-3 z-30 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-white/15 p-2.5 shadow-2xl overflow-hidden" data-purpose="compact-sticky-media-player">
+<!-- Slim Scrubber Progress Bar at Top Edge -->
+<div class="relative w-full mb-1.5">
+<input aria-label="Hikaye İlerlemesi" class="w-full h-1 bg-slate-700/80 rounded-lg appearance-none cursor-pointer accent-indigo-400 hover:accent-indigo-300 focus:outline-none block" id="seek-slider" max="100" min="0" type="range" value="31">
+</div>
+<!-- Compact Controls & Track Info Flex Layout -->
+<div class="flex items-center justify-between gap-2 px-1">
+<!-- Mini Title & Time Info -->
+<div class="flex items-center space-x-2.5 min-w-0 flex-1">
+<div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0 text-xs text-dream-gold">
+          🌙
+        </div>
+<div class="min-w-0 leading-tight">
+<p class="text-xs font-semibold text-white truncate" id="mini-player-title">Ay Işığında Fısıltılar</p>
+<div class="flex items-center space-x-1.5 text-[10px] font-mono text-slate-400">
+<span id="current-time">08:42</span>
+<span>/</span>
+<span id="remaining-time">-19:33</span>
+</div>
+</div>
+</div>
+<!-- Player Action Buttons -->
+<div class="flex items-center space-x-1 shrink-0">
+<!-- 15s Backward Button -->
+<button aria-label="15 Saniye Geri" class="p-1.5 text-slate-300 hover:text-white transition active:scale-90 flex flex-col items-center" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[7px] font-bold -mt-0.5">-15</span>
+</button>
+<!-- Main Play / Pause Button -->
+<button aria-label="Oynat / Durdur" class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 via-indigo-400 to-purple-400 text-slate-950 flex items-center justify-center shadow-md shadow-indigo-500/30 hover:scale-105 active:scale-95 transition-all" id="play-pause-btn" onclick="togglePlayState()" type="button">
+<svg class="w-4 h-4 fill-current ml-0.5 hidden" id="play-icon" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+<svg class="w-4 h-4 fill-current" id="pause-icon" viewBox="0 0 24 24"><path d="M6 4h4v16H6zm8 0h4v16h-4z"></path></svg>
+</button>
+<!-- 15s Forward Button -->
+<button aria-label="15 Saniye İleri" class="p-1.5 text-slate-300 hover:text-white transition active:scale-90 flex flex-col items-center" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[7px] font-bold -mt-0.5">+15</span>
+</button>
+<!-- Voice Speed Switcher -->
+<button class="px-1.5 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 font-medium text-dream-lavender text-[10px]" id="speed-toggle" onclick="cycleSpeed()" title="Oynatma Hızı" type="button">
+          0.8x
+        </button>
+</div>
+</div>
+</aside>
+<!-- END: CompactBottomMediaPlayer -->
+<!-- BEGIN: BottomNavigationBar -->
+<!-- MediTrans App Global Bottom Navigation -->
+<nav class="absolute bottom-0 inset-x-0 z-30 bg-night-950/95 backdrop-blur-2xl border-t border-white/10 px-6 py-2.5 flex justify-around items-center" data-purpose="bottom-tab-bar"><!-- Nav Item: Ana Sayfa -->
+<a class="flex flex-col items-center group text-slate-400 hover:text-white transition" href="#">
+  <span class="text-lg mb-0.5 leading-none select-none">🌿</span>
+  <span class="text-[10px] font-medium">Ana Sayfa</span>
+</a>
+<!-- Nav Item: Meditasyon -->
+<a class="flex flex-col items-center group text-slate-400 hover:text-white transition" href="#">
+  <span class="text-lg mb-0.5 leading-none select-none">🧘</span>
+  <span class="text-[10px] font-medium">Meditasyon</span>
+</a>
+<!-- Nav Item: Profil -->
+<a class="flex flex-col items-center group text-slate-400 hover:text-white transition" href="#">
+  <span class="text-lg mb-0.5 leading-none select-none">👤</span>
+  <span class="text-[10px] font-medium">Profil</span>
+</a></nav>
+<!-- END: BottomNavigationBar -->
+<!-- iOS Home Indicator Pill -->
+<div class="absolute bottom-1.5 inset-x-0 flex justify-center z-40 pointer-events-none">
+<div class="w-32 h-1 bg-white/25 rounded-full"></div>
+</div>
+</div>
+<!-- END: MobileDeviceContainer -->
+<!-- BEGIN: StoryDataAndPlayerScript -->
+<script data-purpose="story-player-interactions">
+    // Dataset for both Sleep Stories
+    const stories = {
+      1: {
+        id: 1,
+        title: "Ay Işığında Fısıltılar",
+        genre: "Huzurlu Orman Masalı",
+        narrator: "Canan G.",
+        totalTime: "28:15",
+        currentTime: "08:42",
+        remainingTime: "-19:33",
+        progress: 31,
+        bgImg: "https://lh3.googleusercontent.com/aida-public/AB6AXuCWm3Hs4zgj5vlc284Cal6DHZxeRltkrJjIY6EC__KGiB4Hl08LfEBY9CMgE7OArA-PSijW6Avyd3sYUa4WXGGBha__o91DgoYbL3i_ooD3bv6ZqWtz7gsaN6pZKuGm9kiGFceGciJg31FQiPfekSOs-_KZkv-lgOWeIsWt8cGfs52NtnUiiJdfiod8f5Fnb35q_-2MRP1UdQl5JzxWwSQ9RjIwnUNtaA78uWT6juTK3JtV8Smi_Zsw",
+        text: `
+          <p class="first-letter:text-3xl first-letter:font-semibold first-letter:text-dream-gold first-letter:mr-1">
+            Gece vadinin üzerine usulca çökerken, gökyüzündeki dolunayın gümüş ışıltısı sakin sakin akan nehrin yüzeyine yansıyordu. Ağaçların yaprakları hafif bir esintiyle kıpırdıyor, doğa günün yorgunluğunu serin ve derin bir nefesle bırakıyordu.
+          </p>
+          <p class="text-slate-300/80">
+            Kıyıdaki sazlıkların arasından yükselen su şıpırtıları, zihnindeki tüm düşünceleri bir bir temizleyen bir ninniye dönüşüyordu. Her nefes alışında nehrin taze kokusu göğsünü dolduruyor, her nefes verişinde omuzlarındaki ağırlık suya karışıp eriyip gidiyordu.
+          </p>
+          <p class="text-slate-400 italic text-sm border-l-2 border-indigo-400/40 pl-3">
+            "Şimdi gözlerini yavaşça dinlendir... Nehir senin yerine akmaya devam edecek, ay ışığı rüyalarını koruyacak."
+          </p>
+        `
+      },
+      2: {
+        id: 2,
+        title: "Yıldızların Altındaki Kulübe",
+        genre: "Sıcak Dağ & Şömine Masalı",
+        narrator: "Murat E.",
+        totalTime: "34:20",
+        currentTime: "00:00",
+        remainingTime: "-34:20",
+        progress: 0,
+        bgImg: "https://lh3.googleusercontent.com/aida-public/AB6AXuAJ8MbaeOOn5JmkHl83jA2QfLLY_9KGKtMl72IPa3s1FpM4t4KaX0J1b_k-SMaMMAPqNderbT3n7VqEK0yw1iBkE8n71x_ALs52_F7fJX1mNs0nBwRuYiZDUOps6K5lFVGca4MzjGaJ4wHjweweLIpWAPcf91HsBdmvLid_7zsPqS-Uw0hgd5DEq4PON_FAay4tFxS45PPPnFaQwW1HfTp9UrCyV20b36chXtDZxGuvYlu4_IujQG1M",
+        text: `
+          <p class="first-letter:text-3xl first-letter:font-semibold first-letter:text-amber-300 first-letter:mr-1">
+            Yüksek çam ağaçlarıyla çevrili vadinin zirvesinde, pencerelerinden amber sarısı sıcak bir ışık süzülen ahşap bir dağ evi seni bekliyor. Gökyüzü uçsuz bucaksız bir yıldız halısıyla kaplanmış, geceye tatlı bir sessizlik hakim.
+          </p>
+          <p class="text-slate-300/80">
+            İçeride şömineden gelen çıtır çıtır odun sesleri, seni sıcacık yün battaniyenin altına davet ediyor. Çatıya vuran hafif rüzgarın uğultusu, güvende ve huzurlu olduğun hissini her saniye daha da pekiştiriyor.
+          </p>
+          <p class="text-slate-400 italic text-sm border-l-2 border-amber-400/40 pl-3">
+            "Bütün dünya dışarıda uykuya çekildi. Bırak şöminenin sıcaklığı tüm bedenini gevşetsin, yıldızlar uykunu sarsın..."
+          </p>
+        `
+      }
+    };
+
+    let currentStoryId = 1;
+    let isPlaying = true;
+    let currentSpeedIndex = 0;
+    const speeds = ["0.8x", "1.0x", "1.2x"];
+    let currentTimerIndex = 0;
+    const timers = ["30 dk", "45 dk", "60 dk", "Kapanana Kadar"];
+    let isLargeFont = false;
+
+    // Switch between Story 1 and Story 2
+    function switchStory(id) {
+      currentStoryId = id;
+      const data = stories[id];
+
+      // Update background and text with smooth visual transition
+      document.getElementById('dynamic-bg-img').src = data.bgImg;
+      document.getElementById('story-title').textContent = data.title;
+      document.getElementById('mini-player-title').textContent = data.title;
+      document.getElementById('story-genre').textContent = data.genre;
+      document.getElementById('story-narrator').innerHTML = `
+        <svg class="w-3.5 h-3.5 opacity-70 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+        ${data.narrator}
+      `;
+      document.getElementById('story-duration').textContent = `${data.totalTime} Toplam`;
+      document.getElementById('current-time').textContent = data.currentTime;
+      document.getElementById('remaining-time').textContent = data.remainingTime;
+      document.getElementById('seek-slider').value = data.progress;
+      document.getElementById('story-content').innerHTML = data.text;
+
+      // Update Tab Styles
+      const tab1 = document.getElementById('tab-story-1');
+      const tab2 = document.getElementById('tab-story-2');
+
+      if (id === 1) {
+        tab1.className = "group relative text-left rounded-2xl overflow-hidden p-2.5 transition-all duration-300 border-2 border-indigo-400/80 bg-white/10 shadow-lg shadow-indigo-900/30 focus:outline-none";
+        tab1.setAttribute('aria-selected', 'true');
+        tab2.className = "group relative text-left rounded-2xl overflow-hidden p-2.5 transition-all duration-300 border border-white/10 hover:border-white/30 bg-black/30 focus:outline-none opacity-75 hover:opacity-100";
+        tab2.setAttribute('aria-selected', 'false');
+      } else {
+        tab2.className = "group relative text-left rounded-2xl overflow-hidden p-2.5 transition-all duration-300 border-2 border-indigo-400/80 bg-white/10 shadow-lg shadow-indigo-900/30 focus:outline-none";
+        tab2.setAttribute('aria-selected', 'true');
+        tab1.className = "group relative text-left rounded-2xl overflow-hidden p-2.5 transition-all duration-300 border border-white/10 hover:border-white/30 bg-black/30 focus:outline-none opacity-75 hover:opacity-100";
+        tab1.setAttribute('aria-selected', 'false');
+      }
+
+      // Ensure play state is active
+      if (!isPlaying) {
+        togglePlayState();
+      }
+    }
+
+    // Toggle Play / Pause state
+    function togglePlayState() {
+      isPlaying = !isPlaying;
+      const playIcon = document.getElementById('play-icon');
+      const pauseIcon = document.getElementById('pause-icon');
+
+      if (isPlaying) {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+      } else {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+      }
+    }
+
+    // Cycle through narration speeds
+    function cycleSpeed() {
+      currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+      document.getElementById('speed-toggle').textContent = speeds[currentSpeedIndex];
+    }
+
+    // Cycle through sleep timers
+    function cycleTimer() {
+      currentTimerIndex = (currentTimerIndex + 1) % timers.length;
+      const selected = timers[currentTimerIndex];
+      document.getElementById('timer-badge').textContent = selected;
+    }
+
+    // Toggle story text typography size
+    function toggleFontSize() {
+      isLargeFont = !isLargeFont;
+      const content = document.getElementById('story-content');
+      const btn = document.getElementById('font-size-btn');
+      if (isLargeFont) {
+        content.classList.remove('text-base');
+        content.classList.add('text-lg');
+        btn.textContent = 'Yazı: A-';
+      } else {
+        content.classList.remove('text-lg');
+        content.classList.add('text-base');
+        btn.textContent = 'Yazı: A+';
+      }
+    }
+
+    // Progress slider listener
+    const seekSlider = document.getElementById('seek-slider');
+    seekSlider.addEventListener('input', function() {
+      const val = parseInt(this.value);
+      const curSeconds = Math.floor((val / 100) * 1695);
+      const mins = Math.floor(curSeconds / 60).toString().padStart(2, '0');
+      const secs = (curSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('current-time').textContent = `${mins}:${secs}`;
+    });
+  </script>
+<!-- END: StoryDataAndPlayerScript -->
+
+
+
+
+</body></html>

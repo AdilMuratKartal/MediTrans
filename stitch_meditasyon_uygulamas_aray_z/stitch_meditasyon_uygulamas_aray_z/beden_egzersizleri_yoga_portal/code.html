@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="tr"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<title>MediTrans - Beden Egzersizleri</title>
+<!-- Tailwind CSS v3 with Forms & Container Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            aura: {
+              purple: '#7d67b2',
+              'purple-dark': '#554284',
+              'purple-light': '#ece8f7',
+              warm: '#fbf7ee',
+              gold: '#e9be64',
+              surface: '#fbf8ff'
+            }
+          },
+          boxShadow: {
+            'soft-card': '0 8px 30px -4px rgba(125, 103, 178, 0.08)',
+            'nav-float': '0 -4px 20px rgba(110, 80, 160, 0.06)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="custom-layout">
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* iOS Safe Area Desteği */
+    .safe-top {
+      padding-top: max(env(safe-area-inset-top), 16px);
+    }
+    .safe-bottom {
+      padding-bottom: max(env(safe-area-inset-bottom), 12px);
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="bg-[#f8f5ee] text-slate-800 flex justify-center min-h-screen selection:bg-purple-200">
+<!-- BEGIN: Mobile App Screen Container (iOS Form Factor) -->
+<div class="relative w-full max-w-[430px] min-h-screen flex flex-col shadow-2xl overflow-x-hidden border-x border-[#ebe5d8]/40 bg-cover bg-center bg-no-repeat" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmjNrEj_tloWy78FcYskCbSqETBe6IzBapXSVVwUmoBXIUpPNlN8U8LPA6Q8M55plyRFWd6YZ0ek9nUmyqlGRr3CgNfDar1w1DzuXATEE-XAo461txvlVx2DECq5MuK--jj2vTusZUh1C12QOALlPzh4sAw9fcZ5aixKh4PThTmLl1bYd66FdUZh4wUiIHoy38sXNfx3BJcYaW6JdM2COnMQKFMx2z3QtVL-ed71u8FjNMf4mANJpB');">
+<!-- BEGIN: TopBar Header -->
+<header class="sticky top-0 z-30 bg-[#fbf8f0]/85 backdrop-blur-md safe-top px-5 pb-3 border-b border-[#ebdca9]/20" data-purpose="app-header">
+<!-- iOS Durum Çubuğu Yeri -->
+<div class="w-full flex justify-between items-center text-[13px] font-semibold text-stone-500 pt-1 pb-2">
+<span>09:41</span>
+<div class="flex items-center gap-1.5">
+<svg class="w-4 h-4 text-stone-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.23 19.57 10.57 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9z"></path></svg>
+<svg class="w-4 h-4 text-stone-700" fill="currentColor" viewBox="0 0 24 24"><path d="M2 17h20v2H2zm1.15-4.05L4 11.47l.85 1.48L3.15 12.95zm3.62-2.1l.85-1.48.85 1.48-1.7 0zm3.63-2.1L12 6.27l1.6 3.01H10.4zm7.25 4.2l.85-1.48.85 1.48-1.7 0z"></path></svg>
+<div class="w-5 h-2.5 border border-stone-600 rounded-sm p-0.5 flex items-center">
+<div class="w-full h-full bg-stone-700 rounded-2xs"></div>
+</div>
+</div>
+</div>
+<!-- Navigasyon ve Başlık Alanı -->
+<div class="flex items-center justify-between mt-2">
+<div class="flex items-center gap-3">
+<!-- Geri Butonu -->
+<button aria-label="Geri Dön" class="w-10 h-10 -ml-1 rounded-full flex items-center justify-center text-slate-700 bg-white/70 shadow-sm border border-stone-200/60 active:bg-purple-100/50 transition" type="button">
+<svg class="w-5 h-5 text-[#5e4b8b]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-stone-800 leading-tight">Beden Egzersizleri</h1>
+<p class="text-[12px] font-medium text-stone-500 flex items-center gap-1.5 mt-0.5">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#8a7cb9]"></span>
+              8 Poz • 15 Dakika Pratik
+            </p>
+</div>
+</div>
+<!-- Filtre / Bilgi Butonu -->
+<button aria-label="Seviye Filtresi" class="w-9 h-9 rounded-full bg-white/80 border border-purple-100 flex items-center justify-center text-purple-700 shadow-sm hover:bg-purple-50" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12 3c2.755 0 5.455.232 8.083.678.539.092.917.56.917 1.107v1.86a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.236A2.25 2.25 0 013 5.645V4.785c0-.547.378-1.015.917-1.107A48.513 48.513 0 0112 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</header>
+<!-- END: TopBar Header -->
+<!-- BEGIN: Yoga Movement Cards Grid -->
+<main class="flex-1 px-4 py-4 mb-24" data-purpose="exercise-gallery">
+<!-- Motivasyon Mesajı / Banner -->
+<div class="mb-4 px-1 py-1 flex items-center justify-between text-xs text-stone-600">
+<span class="flex items-center gap-1.5 font-medium text-stone-700">
+<span class="text-sm">✨</span> Bedenini ve zihnini sakinleştir
+  </span>
+<span class="text-[11px] font-semibold text-purple-900 bg-purple-100/60 px-2.5 py-0.5 rounded-full">Tüm Düzeyler</span>
+</div>
+<!-- 2 Sütunlu Grid Pozlar -->
+<div class="grid grid-cols-2 gap-x-4 gap-y-6">
+<!-- Poz 1: Virasana / Kahraman Oturuşu -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98]" data-purpose="exercise-card" role="button">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/60 shadow-xs hover:bg-white/60 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">01</span>
+<img alt="Virasana - Kahraman Oturuşu" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK8QwRTHvozw532UfCCMoRU2d3UT2ix4cvdL14gXazWBBS_n6OUmHsfGxAHc1CDh0f7iyzS_ACvw2KqaEbrFbz_coQbI4bHRQYvqg0H128hTYoZ1h9ofprlE5qbRlfJYLsbUhunmAKTc8PSDhJgWfK1PQmiDAEEnX-rN8592kmn2tLa_CHFTFzLnuJ3yY63xRClhXR7mA0tvq6Y-tAA63LjvxV3YeLFFZbcFG9gPAKXyYYdvEiMOIZ">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition">Virasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Kahraman Oturuşu</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        2 Dk
+      </span>
+<span class="text-[10px] text-purple-700/90 font-medium">• Başlangıç</span>
+</div>
+</div>
+</article>
+<!-- Poz 2: Padmasana / Lotus Pozu -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98]" data-purpose="exercise-card" role="button">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/60 shadow-xs hover:bg-white/60 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">02</span>
+<img alt="Padmasana - Lotus Duruşu" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX976_MuDCjD6VGr5xW4xEVa5Y0iYgYAzFXm6mvsAMtP95hUuYRqaDM5_FXK7ZpJPj4jFd2BFSrMKwQjeVEs2AXBJSB459y2xMy8q9Kgjj5svSrCy4rV6uNYk1y5D8K-EMtM6r86Ug-2S8U_5j7nogwxEfQae00N79WJT0eLuKliHT232_ZQne5wQHm38URO5zRIpyYeCbIEbcOGZ1muze-R3tG_0j47120-4IrGs9VEz714M_pXzg">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition">Padmasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Lotus Duruşu</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        3 Dk
+      </span>
+<span class="text-[10px] text-purple-700/90 font-medium">• Klasik</span>
+</div>
+</div>
+</article>
+<!-- Poz 3: Sukhasana / Huzur Bağdaşı -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98]" data-purpose="exercise-card" role="button">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/60 shadow-xs hover:bg-white/60 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">03</span>
+<img alt="Sukhasana - Huzur Bağdaşı" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxieYVPzc6bXcRAOlN6-3mSiXwijMO6MQ6T4-HPEVAXpZKYrtr_bS1vd1MuG-48j1gJqd_CJJ2w96dyatKaTaryQ0Lh4iGSm1OaWPm1v1taBuW4RaS1w6P_LzpD5u1eGYZxhbBiJw1pSupLO8Xt-PIh1CTaatw2Gn8FCvKe4eTDKv7I8jGeLGWffXw2okSo3RFLRalLLeZWNt8DGMron-quG948vf9L148PVprbb_FmedQO_QfDlD5">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition">Sukhasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Huzur Bağdaşı</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        2 Dk
+      </span>
+<span class="text-[10px] text-purple-700/90 font-medium">• Kolay</span>
+</div>
+</div>
+</article>
+<!-- Poz 4: Sasangasana / Tavşan & Esneme Pozu -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98] relative" data-purpose="exercise-card" tabindex="0" role="button" aria-label="Sasangasana - Sayaç ve Egzersiz Detayına Git" onclick="console.log('Navigating to Sasangasana sayaç detay ekranı');">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-purple-200/80 shadow-xs hover:bg-white/60 hover:border-purple-300 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">04</span>
+<span class="absolute top-2 right-2.5 w-5 h-5 rounded-full bg-purple-100/80 flex items-center justify-center text-purple-700 shadow-2xs group-hover:bg-purple-200/80 transition">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</span>
+<img alt="Sasangasana - Tavşan Pozu" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz8BljgQcqVLWA9i1HhQngkmyQR0b2o7iBEQkVAiIzggvCKTwIBBzZsh_3FV302Z6QJ4QhyaM7gccXyDt4DByOY_RiyQBNc63TkdaLHuD7cOHnKp4RmvKc5Je_rUoQSzMDryuLUNZUUk4m1vm480dkQz2fT7XC3DRSMFqrryDdXyekaPaKaw1N93AhjWjxvxbRb8_f5HeKNcSBVJpalGqZEkl1bltsg1VJD1yWC7b21Z2LoVCm971b">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition flex items-center gap-1">Sasangasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Tavşan &amp; Esneme Pozu</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        1.5 Dk
+      </span>
+<span class="text-[10px] text-amber-700/90 font-medium">• Orta</span>
+</div>
+</div>
+</article>
+<!-- Poz 5: Vrikshasana / Ağaç Dengesi -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98]" data-purpose="exercise-card" role="button">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/60 shadow-xs hover:bg-white/60 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">05</span>
+<img alt="Vrikshasana - Ağaç Dengesi" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfx1JKmoPrnVb-MpCG_CCi2AdSnmK55Uf7aKhfCzANbWN_4fqPk0xOIU7LQu0TWugEWfWcOncsxUAm_ZjpG2oT-TyKrcjxfWjOaanaGl-xWo6P-Tab10xQUiRDN2g10NyjC-JmkqED0FmhrYgQ8xMwT2MBofeslkhiwztciQJwPYvz4TgdvFDGns9bEwJ5Nh-sSXD3fkaHYiYQETAHtlp2yOcIO6vz1Ru1FJB3sSGn3d85FjUbqOIr">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition">Vrikshasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Ağaç Dengesi</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        2 Dk
+      </span>
+<span class="text-[10px] text-purple-700/90 font-medium">• Denge</span>
+</div>
+</div>
+</article>
+<!-- Poz 6: Phalakasana / Plank Güç -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98]" data-purpose="exercise-card" role="button">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/60 shadow-xs hover:bg-white/60 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">06</span>
+<img alt="Phalakasana - Plank Duruşu" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_R27yopkKseStNyDUspyz4PxIBZn_yBK2UFw0tU6S3-8po56NycV_GlJ50G0oXVRX8j0h1nxRZZP5rwMVldXaZtYDs4faOUY56xQhXKdKYCAhHwYHi8Cvm1jRqVizraXdzo_F9fqJ2T97gGOK7fN6pYttWMihRzFpQqfekOYQejg0YbLx2C3MwZ6nbwOSi1A30K4oS8dAAK94hwNQ6bSPfmaChZX5x59Vfz7asTHRuhw7mDOoM8KX">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition">Phalakasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Plank &amp; Güç</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        1 Dk
+      </span>
+<span class="text-[10px] text-amber-700/90 font-medium">• Güç</span>
+</div>
+</div>
+</article>
+<!-- Poz 7: Paschimottanasana / Öne Katlanma -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98]" data-purpose="exercise-card" role="button">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/60 shadow-xs hover:bg-white/60 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">07</span>
+<img alt="Paschimottanasana - Öne Katlanma" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1TQLwLpjIIHiksQ31oF1oPP49UYN87lbjXyC9bIUTiuWYH84UINzXfaks245BVnvMhd3IrLuXYSBx6-uL5VbRTyUdEouFvU4qsz9degWoa5-dc-WGP8F1FAQdyMFXdM1UT7sUgvixQzd8Eu_aLOCsxDt4lTwQhBrrAxge2LroXI2JX3nQOEz_ES_qwSlISLwZjf8uomA6fVqC2GKoPPXkODgfl3eNL21QYCG9fRvgf6LkIMgFWo3w">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition">Paschimottanasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Oturarak Öne Katlanma</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        2 Dk
+      </span>
+<span class="text-[10px] text-purple-700/90 font-medium">• Esneme</span>
+</div>
+</div>
+</article>
+<!-- Poz 8: Savasana / Derin Gevşeme -->
+<article class="cursor-pointer group flex flex-col items-center text-center transition active:scale-[0.98]" data-purpose="exercise-card" role="button">
+<div class="relative w-full h-32 sm:h-36 flex items-center justify-center p-2 rounded-2xl bg-white/40 backdrop-blur-sm border border-white/60 shadow-xs hover:bg-white/60 transition-all cursor-pointer">
+<span class="absolute top-2 left-2.5 text-[11px] font-bold text-purple-800/80">08</span>
+<img alt="Savasana - Ceset &amp; Derin Gevşeme" class="max-h-full max-w-full object-contain filter drop-shadow-sm transition-transform duration-300 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-JGwI7bNVDMF0cr0FCPAwsEC3yl5UaeMr3r-_eBf9_AGZSlLj69m4kmI3NrTcSyss6en8sgxTnEchdR5R5USgspBO7CBfTf8LCnoLone-YRpkwlWA1xhQ20GNDig_OqJxkZ3J_aFV1LwBCcIKubjJkKRCd2dvDmoXvDBQeWU_LzEJfrSG-tIPivlQyI2QQaav33iXKDCuemSp7qO15kAlyOfQBDKlXVVsdH7YWAnVl1gXoADvt6Us">
+</div>
+<div class="pt-2 w-full flex flex-col items-center">
+<h2 class="text-sm font-semibold text-stone-800 tracking-tight group-hover:text-purple-900 transition">Savasana</h2>
+<p class="text-[11px] text-stone-500 font-medium">Derin Gevşeme &amp; Bitiş</p>
+<div class="mt-1 flex items-center justify-center gap-2 text-[11px] text-stone-400">
+<span class="flex items-center gap-1 text-purple-700/80 font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        3.5 Dk
+      </span>
+<span class="text-[10px] text-emerald-700/90 font-medium">• Dinlenme</span>
+</div>
+</div>
+</article>
+</div>
+<!-- Akış Tamamlama CTA Butonu -->
+<div class="mt-6 mb-2">
+<button class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#7a64ad] to-[#634e94] text-white font-semibold text-sm shadow-md hover:shadow-lg active:scale-[0.99] transition flex items-center justify-center gap-2" type="button">
+<span>Tüm Seriyi Başlat</span>
+<svg class="w-4 h-4 text-purple-200" fill="currentColor" viewBox="0 0 24 24">
+<path d="M8 5v14l11-7z"></path>
+</svg>
+</button>
+</div>
+</main>
+<!-- END: Yoga Movement Cards Grid -->
+<!-- BEGIN: Bottom Navigation Bar -->
+<nav class="fixed bottom-0 max-w-[430px] w-full bg-[#fbf8f0]/90 backdrop-blur-xl border-t border-[#d8d0c2]/35 shadow-nav-float z-40 safe-bottom" data-purpose="bottom-navigation">
+<div class="grid grid-cols-3 h-16 items-center px-4">
+<!-- Tab 1: Ana Sayfa -->
+<a class="flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-stone-700 transition" href="#anasayfa">
+<svg class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[11px] font-medium tracking-tight">Ana Sayfa</span>
+</a>
+<!-- Tab 2: Meditasyon (Aktif Sekme) -->
+<a class="flex flex-col items-center justify-center gap-1 text-[#6b569e] relative group" href="#meditasyon">
+<div class="relative">
+<svg class="w-6 h-6 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#6b569e]"></span>
+</div>
+<span class="text-[11px] font-bold tracking-tight text-[#574386]">Meditasyon</span>
+</a>
+<!-- Tab 3: Profil -->
+<a class="flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-stone-700 transition" href="#profil">
+<svg class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[11px] font-medium tracking-tight">Profil</span>
+</a>
+</div>
+</nav>
+<!-- END: Bottom Navigation Bar -->
+</div>
+<!-- END: Mobile App Screen Container -->
+<!-- BEGIN: Card Interaction Script -->
+<script data-purpose="card-interactions">
+    document.addEventListener('DOMContentLoaded', () => {
+      // Egzersiz kartlarına tıklanıldığında detay sayfasına yönlendirme hissi
+      const cards = document.querySelectorAll('[data-purpose="exercise-card"]');
+      cards.forEach((card) => {
+        card.addEventListener('click', () => {
+          const poseName = card.querySelector('h2')?.innerText || 'Egzersiz';
+          console.log(`Detay sayfasına gidiliyor: ${poseName}`);
+        });
+      });
+    });
+  </script>
+<!-- END: Card Interaction Script -->
+
+
+</body></html>

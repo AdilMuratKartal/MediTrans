@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "27506456575",
+    "project_id": "meditrans-2ff48",
+    "storage_bucket": "meditrans-2ff48.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:27506456575:android:a9d4606fea14e3d62599ca",
+        "android_client_info": {
+          "package_name": "com.example.meditrans"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAEltHzSntMgJBU8TKXPlrd5uzSAvBJvU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

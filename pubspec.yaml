@@ -1,0 +1,47 @@
+name: meditrans
+description: "MediTrans — Ethereal Aura Mind mindfulness, breathwork, yoga, Hz resonance, and sleep sanctuary."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  firebase_core: ^3.12.1
+  firebase_auth: ^5.5.1
+  cloud_firestore: ^5.6.5
+  firebase_messaging: ^15.2.4
+  supabase_flutter: ^2.8.4
+  drift: ^2.26.0
+  drift_flutter: ^0.2.4
+  sqlite3: ^2.7.5
+  shared_preferences: ^2.5.2
+  flutter_local_notifications: ^19.0.0
+  timezone: ^0.10.0
+  audioplayers: ^6.4.0
+  video_player: ^2.9.3
+  path_provider: ^2.1.5
+  http: ^1.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/backgrounds/
+    - assets/images/yoga/
+    - assets/stories/
+    - assets/audio/
+    - assets/audio/breathwork/
+    - assets/audio/nature/
+    - assets/audio/noise/
+    - assets/audio/stories/
+    - assets/audio/frequencies/
+    - assets/videos/hz/
