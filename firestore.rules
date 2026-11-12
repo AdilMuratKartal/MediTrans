@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Kullanıcılar ana koleksiyonu
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    // Haftalık Alışkanlıklar koleksiyonu (içinde userId ile users/{userId} bağlantılı)
+    match /weekly_habits/{docId} {
+      allow read, write: if true;
+    }
+    // En Son Dinlenen İçerik & Metadata koleksiyonu (içinde userId ile users/{userId} bağlantılı)
+    match /last_played_tracks/{docId} {
+      allow read, write: if true;
+    }
+    // 7 Günlük Haftalık Duygu Grafiği koleksiyonu (içinde userId ile users/{userId} bağlantılı)
+    match /mood_charts/{docId} {
+      allow read, write: if true;
+    }
+    // Günlük Duygu & Yansıma Notları koleksiyonu (içinde userId ile users/{userId} bağlantılı)
+    match /mood_logs/{docId} {
+      allow read, write: if true;
+    }
+    // Tamamlanan Meditasyon/Nefes/Uyku Oturumları koleksiyonu (içinde userId ile users/{userId} bağlantılı)
+    match /session_history/{docId} {
+      allow read, write: if true;
+    }
+    // Kullanıcı Favorileri koleksiyonu (içinde userId ile users/{userId} bağlantılı)
+    match /user_favorites/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

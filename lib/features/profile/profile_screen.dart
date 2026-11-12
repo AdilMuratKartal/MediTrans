@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../core/data/models.dart';
+import '../../core/data/models/mood_entry_model.dart';
 import '../../core/data/seed_catalog.dart';
 import '../../core/di/app_scope.dart';
 import '../../core/theme/aura_theme.dart';
+import '../auth/anonymous_entry_screen.dart';
+import '../auth/login_screen.dart';
+import '../auth/register_screen.dart';
 
 /// Profile & Weekly Emotion Analysis Screen (`profil_ve_duygu_analizi`)
 /// Includes Vitals (`Yaş`, `Kilo`), Edit Profile sheet, Habits & Routines editor,
@@ -187,120 +190,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showAuthSheet(BuildContext context, AppScope scope) {
-    final emailCtrl = TextEditingController(
-      text: scope.localStore.profile.email ?? 'adil.murat@meditrans.app',
-    );
-    final passCtrl = TextEditingController(text: 'MediTrans2026!');
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AuraColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+  void _openLoginScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const LoginScreen(isModalRoute: true),
       ),
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            20,
-            24,
-            MediaQuery.of(ctx).viewInsets.bottom + 28,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Firebase Hesap & Bulut Eşitleme',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: AuraColors.onSurface,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Ücretsiz Firebase Spark katmanı ile duygu kayıtlarınızı ve alışkanlıklarınızı eşitleyin.',
-                style: TextStyle(
-                  fontFamily: 'Segoe UI',
-                  fontSize: 13,
-                  color: AuraColors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: emailCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'E-posta Adresi',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: passCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Parola',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final msg = await scope.cloudSync
-                            .signInWithEmailOrAnonymous();
-                        if (ctx.mounted) Navigator.of(ctx).pop();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(msg),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.bolt_rounded),
-                      label: const Text('Anonim Bağlan'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AuraColors.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        final msg = await scope.cloudSync
-                            .signInWithEmailOrAnonymous(
-                              email: emailCtrl.text,
-                              password: passCtrl.text,
-                            );
-                        if (ctx.mounted) Navigator.of(ctx).pop();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(msg),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.login_rounded),
-                      label: const Text('Giriş Yap'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -838,7 +732,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     );
                                   }
                                 } else {
-                                  _showAuthSheet(context, scope);
+                                  _openLoginScreen(context);
                                 }
                               },
                               icon: Icon(
@@ -856,6 +750,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ],
                       ),
+                      if (!scope.cloudSync.isSignedIn) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const RegisterScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.person_add_alt_1_rounded,
+                                  size: 16,
+                                ),
+                                label: const Text('Hesap Oluştur'),
+                              ),
+                            ),
+                            Expanded(
+                              child: TextButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) =>
+                                          const AnonymousEntryScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.visibility_off_outlined,
+                                  size: 16,
+                                ),
+                                label: const Text('Anonim Sayfası'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

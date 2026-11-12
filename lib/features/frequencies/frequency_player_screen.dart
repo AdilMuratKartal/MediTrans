@@ -412,106 +412,117 @@ class _FrequencyPlayerScreenState extends State<FrequencyPlayerScreen>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Animated Sacred Resonance Halo
-                          AnimatedBuilder(
-                            animation: _pulseController,
-                            builder: (context, _) {
-                              final scale =
-                                  0.92 + (_pulseController.value * 0.14);
-                              return Transform.scale(
-                                scale: scale,
-                                child: Container(
-                                  width: _isFullScreenResonance ? 260 : 210,
-                                  height: _isFullScreenResonance ? 260 : 210,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.32,
-                                      ),
-                                      width: 1.5,
-                                    ),
-                                    gradient: RadialGradient(
-                                      colors: [
-                                        AuraColors.nightAccent.withValues(
-                                          alpha: 0.42,
-                                        ),
-                                        Colors.white.withValues(alpha: 0.10),
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AuraColors.nightAccent
-                                            .withValues(alpha: 0.28),
-                                        blurRadius: 48,
-                                        spreadRadius: 8,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          item.codeLabel,
-                                          style: TextStyle(
-                                            fontSize: _isFullScreenResonance
-                                                ? 46
-                                                : 38,
-                                            fontWeight: FontWeight.w400,
-                                            color: Colors.white,
-                                            letterSpacing: -0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
+                          // Animated Sacred Resonance Halo (Flexible with Expanded + FittedBox to prevent macOS viewport overflows)
+                          Expanded(
+                            child: Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: AnimatedBuilder(
+                                  animation: _pulseController,
+                                  builder: (context, _) {
+                                    final scale =
+                                        0.92 + (_pulseController.value * 0.14);
+                                    return Transform.scale(
+                                      scale: scale,
+                                      child: Container(
+                                        width: _isFullScreenResonance ? 260 : 210,
+                                        height: _isFullScreenResonance ? 260 : 210,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
                                             color: Colors.white.withValues(
-                                              alpha: 0.14,
+                                              alpha: 0.32,
                                             ),
-                                            borderRadius: BorderRadius.circular(
-                                              99,
-                                            ),
+                                            width: 1.5,
                                           ),
-                                          child: Text(
-                                            item.isAngelSequence
-                                                ? 'MELEK DİZİSİ'
-                                                : 'CANLI REZONANS',
-                                            style: const TextStyle(
-                                              fontFamily: 'Segoe UI',
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 1.4,
-                                              color: AuraColors.nightAccent,
+                                          gradient: RadialGradient(
+                                            colors: [
+                                              AuraColors.nightAccent.withValues(
+                                                alpha: 0.42,
+                                              ),
+                                              Colors.white.withValues(alpha: 0.10),
+                                              Colors.transparent,
+                                            ],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AuraColors.nightAccent
+                                                  .withValues(alpha: 0.28),
+                                              blurRadius: 48,
+                                              spreadRadius: 8,
                                             ),
+                                          ],
+                                        ),
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                item.codeLabel,
+                                                style: TextStyle(
+                                                  fontSize: _isFullScreenResonance
+                                                      ? 46
+                                                      : 38,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Colors.white,
+                                                  letterSpacing: -0.5,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withValues(
+                                                    alpha: 0.14,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(
+                                                    99,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  item.isAngelSequence
+                                                      ? 'MELEK DİZİSİ'
+                                                      : 'CANLI REZONANS',
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Segoe UI',
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                    letterSpacing: 1.4,
+                                                    color: AuraColors.nightAccent,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
                           Text(
                             item.titleTr,
                             textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 26,
+                              fontSize: 24,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text(
                             item.chakraOrThemeTr,
                             textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontFamily: 'Segoe UI',
                               fontSize: 13,
@@ -520,18 +531,21 @@ class _FrequencyPlayerScreenState extends State<FrequencyPlayerScreen>
                             ),
                           ),
                           if (!_isFullScreenResonance) ...[
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 8),
                             Text(
                               item.descriptionTr,
                               textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontFamily: 'Segoe UI',
-                                fontSize: 14,
-                                height: 1.5,
+                                fontSize: 13,
+                                height: 1.4,
                                 color: Colors.white.withValues(alpha: 0.82),
                               ),
                             ),
                           ],
+                          const SizedBox(height: 8),
                         ],
                       ),
                     );

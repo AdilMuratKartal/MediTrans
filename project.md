@@ -21,7 +21,53 @@ Depoda hâlihazırda bulunan çekirdek bileşenler:
 
 ---
 
-## 2. Görsel Tasarım Sistemi — _Ethereal Aura Mind_
+## 2. Kullanılan Teknolojiler ve Mimari Yığın (Tech Stack)
+
+Uygulamanın sıfır maliyet (Free-Tier), yüksek performans, çevrimdışı-öncelikli (offline-first) çalışma ve çoklu platform (macOS, iOS, Android, Web, Windows) hedefleri doğrultusunda kullanılan temel teknoloji ve kütüphaneler aşağıda detaylandırılmıştır:
+
+### 2.1 State Yönetimi & Bağımlılık Enjeksiyonu (State Management & DI)
+- **`ChangeNotifier` + `ListenableBuilder` / `AnimatedBuilder`:** Harici ağır ve karmaşık durum yönetim paketlerine (Bloc, Riverpod vb.) ihtiyaç duymaksızın Flutter'ın yerel, bellek dostu ve reaktif durum mekanizması kullanılmıştır.
+- **`AppScope` (`InheritedWidget`):** Tüm servis katmanlarını (`GlobalAudioController`, `LocalStore`, `CloudSyncService`, `NotificationGateway`, `MediaStorageGateway`, `AppEnvConfig`) uygulama kökünde toplayan ve alt widget'lara `AppScope.of(context)` ile enjekte eden merkezi Servis Bulucu (Service Locator) / DI yapısıdır.
+- **Ekran İçi Durumlar:** `StatefulWidget` + `AnimationController` (Nefes küresi 4-1-4 animasyonu, Hz rezonans pulsasyonu, geri sayım halkası, video arka plan senkronizasyonu).
+
+### 2.2 Yetkilendirme (Authentication)
+- **`firebase_auth` (v5.x):** Google Firebase Spark (ücretsiz plan) üzerinden e-posta & şifre ile kayıt/giriş (`signInWithEmailAndPassword`, `createUserWithEmailAndPassword`) ve hızlı başlangıç için anonim oturum (`signInAnonymously`).
+- **Platform Entegrasyonu (`firebase_options.dart`):** `DefaultFirebaseOptions.currentPlatform` ile macOS, iOS, Android, Web ve Windows için dinamik başlatma.
+- **Çevrimdışı Güvenlik Ağı (Offline Fallback):** İnternet bağlantısı olmadığında veya Firebase Console sağlayıcıları pasifken uygulamanın kilitlenmesini önleyen `LocalStore` destekli yerel profil modu.
+
+### 2.3 Depolama & Veritabanı Mimarisi (Storage & Databases)
+- **Yerel İlişkisel DB (Offline-First): `drift` + `drift_flutter` + native `sqlite3`**
+  - Cihazda kullanıcı profilleri, duygu kayıtları (`mood_logs`), seans geçmişi (`session_history`), alışkanlıklar (`habit_routines`), favoriler ve giden kutusu (`sync_outbox`) tablolarını yönetir.
+  - macOS Sandbox ve mobil yerel dosya sisteminde yüksek performanslı SQLite motoru çalıştırır.
+- **Hafif Ayar Depolama: `shared_preferences` (v2.x)**
+  - Son çalınan parça ID'si, ses seviyesi, günlük bildirim saati ve küçük bayrakların kalıcılığı için kullanılır.
+- **Bulut NoSQL Veritabanı: `cloud_firestore` (v5.x)**
+  - Spark ücretsiz katmanında kullanıcı dokümanı (`users/{uid}`) ve alt koleksiyonlarını (`mood_logs`, `session_history`, `favorites`) senkronize eder.
+  - **Outbox Senkronizasyonu:** Yerelde yapılan tüm CRUD işlemleri önce `sync_outbox` tablosuna yazılır; internet açıldığında toplu (batch) Firestore'a basılır.
+- **Uzak Medya Deposu (CDN / Audio Bucket): `supabase_flutter` (v2.x - Supabase Storage)**
+  - Ücretli `firebase_storage` (Blaze planı gerektirir) yerine Supabase'in 1 GB ücretsiz kotalı `meditation-audio` kovası kullanılır.
+  - **Disk Önbelleği (`MediaStorageGateway` + `PlatformMediaCache`):** `http` ve `path_provider` ile uzaktan çalınan sesler diske indirilir; sonraki dinlemelerde bant genişliği harcamadan yerelden çalınır.
+
+### 2.4 Ses ve Video Motoru (Audio & Media Engine)
+- **`audioplayers` (v6.x):** Tüm uygulama boyunca kesintisiz arka plan ses çalımı (`GlobalAudioController`), ilerleme takibi (seek), çalma listesi (playlist), uyku zamanlayıcısı (sleep timer) ve ses seviyesi (volume) yönetimi.
+- **`video_player` (v2.x):** Hz rezonans ekranlarında arka planda sessiz (`volume: 0.0`) ve diğer sesleri kesmeyen (`mixWithOthers: true`) 9 farklı hareketli stil döngüsünü (`assets/videos/hz/*.mp4`) oynatır.
+
+### 2.5 Bildirim Sistemi (Notification Architecture)
+- **Yerel Hatırlatıcılar: `flutter_local_notifications` (v19.x) + `timezone` (v0.10.x)**
+  - Cihazın yerel saat dilimini kullanarak internetsiz ortamda dahi akşam gevşeme (21:30) ve günlük farkındalık hatırlatıcılarını zamanlar (`zonedSchedule`).
+- **Bulut Bildirimleri (Push): `firebase_messaging` (v15.x - FCM)**
+  - Firebase ücretsiz Cloud Messaging kanalı ile cihaz push token'ı alır, ön plan mesajlarını (`onMessage`) yerel bildirimlerle birleştirir; Web platformunda VAPID anahtarı destekler.
+
+### 2.6 Güvenlik & Ortam Yapılandırması (Environment & Security)
+- **Sıfır Hardcode Gizlilik İlkesi (`AppEnvConfig`):**
+  - Supabase URL, Publishable Key ve FCM Web VAPID anahtarları kaynak koda gömülmez; derleme/çalıştırma esnasında `--dart-define` veya `--dart-define-from-file` ile okunur.
+- **macOS Yetki İzinleri (Entitlements):**
+  - `DebugProfile.entitlements`: `network.client = true`, yerel geliştirme için sandbox kısıtı esnetilmiştir (`app-sandbox = false`).
+  - `Release.entitlements`: `network.client = true` ile giden ağ bağlantıları yetkilendirilmiştir.
+
+---
+
+## 3. Görsel Tasarım Sistemi — _Ethereal Aura Mind_
 
 Tasarım dili `stitch_meditasyon_uygulamas_aray_z/stitch_meditasyon_uygulamas_aray_z/ethereal_aura_mind/DESIGN.md` dokümanına dayanır.
 
@@ -93,9 +139,9 @@ Tasarım dili `stitch_meditasyon_uygulamas_aray_z/stitch_meditasyon_uygulamas_ar
 
 ---
 
-## 3. Navigasyon Mimarisi ve Evrensel Kurallar
+## 4. Navigasyon Mimarisi ve Evrensel Kurallar
 
-### 3.1 Ana Kabuk (3 Sekme)
+### 4.1 Ana Kabuk (3 Sekme)
 
 Alt kısımda yer alan yüzen cam navigasyon barı (`radius: 28px`) tam olarak **3 ana sekme** içerir (`sayfa_ak_s_tasar_mlar.md`):
 
@@ -105,21 +151,21 @@ Alt kısımda yer alan yüzen cam navigasyon barı (`radius: 28px`) tam olarak *
 
 > **Odak Modu Kuralı:** Meditasyon alt akışlarına (Nefes, Beden Poz Detayı, Hz Tam Ekran, Doğa/Gürültü/Hikaye oynatıcıları) girildiğinde tam ekran veya kompakt oynatıcı deneyimi korunur; alttaki yüzen 3'lü bar gizlenerek dikkat dağıtmayan bir alan açılır.
 
-### 3.2 Evrensel Medya / Ses Oynatıcı Kontratı
+### 4.2 Evrensel Medya / Ses Oynatıcı Kontratı
 
 `sayfa_ak_s_tasar_mlar.md` gereği uygulamadaki **tüm sesli ekranlar** ortak bir kalıcı arka plan ses servisi (`GlobalAudioController`) üzerinden çalışır:
 
 - **Standart Kontroller:** `Başlat / Duraklat` (Play/Pause), `İleri / Geri Sar` (±10/15 sn veya önceki/sonraki parça), aktif süre / toplam süre (`04:18 / 17:00`) ve sürüklenebilir ilerleme çubuğu (seek bar), favori / uyku zamanlayıcısı / ses seviyesi / kapatma aksiyonu.
 - **Kesintisiz Arka Plan Çalımı:** Kullanıcı bir doğa sesi, gürültü veya Hz frekansı başlattıktan sonra başka bir sekmeye veya sayfaya geçtiğinde ses çalmaya devam eder; Ana Sayfa'daki **"Frekansa devam et"** kartı veya kompakt kontrol barı ile yönetilebilir.
 
-### 3.3 Kimlik Doğrulama (Firebase Auth)
+### 4.3 Kimlik Doğrulama (Firebase Auth)
 
 - Uygulama açılışında veya Profil sekmesinde hesap yönetimi bulunur (`Email/Şifre`, `Google` vb. sağlayıcılar — `meditrans-2ff48`).
 - Profil sayfasında kullanıcının güvenli **Çıkış Yap (Sign Out)** aksiyonu ve Firestore duygu/profil senkronizasyonu yer alır.
 
 ---
 
-## 4. Ekran Spesifikasyonları (13 Stitch Tasarımı)
+## 5. Ekran Spesifikasyonları (13 Stitch Tasarımı)
 
 ### Modül A: Ana Sayfa & Duygu Durumu
 
@@ -207,7 +253,7 @@ Alt kısımda yer alan yüzen cam navigasyon barı (`radius: 28px`) tam olarak *
 
 ---
 
-## 5. Varlık (Asset) Envanteri, Boyut Optimizasyonu ve Eksikler
+## 6. Varlık (Asset) Envanteri, Boyut Optimizasyonu ve Eksikler
 
 ### 5.1 Mevcut Tasarım & Ses Varlıkları (`mediTrack-tasarım-ve-assetler/` → `assets/` taşınacak)
 
@@ -247,7 +293,7 @@ Alt kısımda yer alan yüzen cam navigasyon barı (`radius: 28px`) tam olarak *
 
 ---
 
-## 6. Hedef Flutter Klasör Mimarisi (Feature-First & Platform-Safe)
+## 7. Hedef Flutter Klasör Mimarisi (Feature-First & Platform-Safe)
 
 Tüm veri modelleri ve şema sözleşmeleri [data_referance.md](data_referance.md) dosyasında tanımlanmıştır.
 
@@ -277,7 +323,7 @@ lib/
 
 ---
 
-## 7. Geliştirme Fazları
+## 8. Geliştirme Fazları
 
 1. **Faz 1 — Çekirdek Tema, Platform Hazırlığı ve 3-Sekme Kabuk:**
    - `Ethereal Aura Mind` Light & Night tema sınıflarının yazılması, macOS entitlements (`network.client`) + Web (`Chrome`/`web-server`) temel ayarlarının yapılması ve yüzen 3 sekmeli cam navigasyon kabuğunun kurulması.
@@ -292,11 +338,11 @@ lib/
 
 ---
 
-## 8. Çok Platformlu Depolama, Bildirim ve Hedef Platform Mimarisi
+## 9. Çok Platformlu Depolama, Bildirim ve Hedef Platform Mimarisi
 
 > Bu bölüm, paketler `pubspec.yaml` içine eklenmeden önce sistem sınırlarını, **%100 ücretsiz plan (kredi kartsız Spark + Supabase Free)** uyumunu ve macOS + Windows Web (`Chrome` / `web-server`) uyumluluğunu garanti altına almak için hazırlanmıştır. Tüm tablo/JSON şemaları için bkz. [data_referance.md](data_referance.md).
 
-### 8.1 Ücretsiz Bulut Kotası Sınırları (`Firebase Spark` + `Supabase Free`)
+### 9.1 Ücretsiz Bulut Kotası Sınırları (`Firebase Spark` + `Supabase Free`)
 
 | Hizmet                                           | Kullanılacak / Hariç | Ücretsiz Plan Sınırı                                               | Mimari Not                                                              |
 | :----------------------------------------------- | :------------------: | :----------------------------------------------------------------- | :---------------------------------------------------------------------- |
@@ -306,7 +352,7 @@ lib/
 | **Cloud Storage for Firebase**                   |      **HARİÇ**       | Ücretsiz Spark planında kullanılamaz _(Blaze zorunlu)_             | `firebase_storage` projeye eklenmez; yerine Supabase Storage kullanılır |
 | **Supabase Storage**                             |      **Dahil**       | **1 GB depolama**, **10 GB/ay bant** (5 GB uncached + 5 GB cached) | Tek uzak ses/görsel deposudur; native disk cache ile egress korunur     |
 
-### 8.2 Yerel Depolama Kararı: `Drift` vs. `Hive` vs. `Isar`
+### 9.2 Yerel Depolama Kararı: `Drift` vs. `Hive` vs. `Isar`
 
 | Kriter                                    | **Drift** (`drift` + `drift_flutter`)                               | **Hive** (`hive_ce` / `hive_ce_flutter`)                        | **Isar**                                                                                |
 | :---------------------------------------- | :------------------------------------------------------------------ | :-------------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
@@ -317,7 +363,7 @@ lib/
 
 - **Önerilen Hibrit Yapı:** Yapılandırılmış tüm veriler (`user_profiles`, `mood_logs`, `habit_routines`, `media_catalog`, `cached_media`, `reminder_schedules`, `sync_outbox`) **`Drift`** içinde tutulur. Son çalınan ses ID'si, ses pozisyonu (`ms`), seçili uyku sayacı gibi basit anahtar-değerler için **`hive_ce`** (veya `shared_preferences`) kullanılır.
 
-### 8.3 Tek Ücretsiz Medya Bulutu: `Supabase Storage` + Yerel Disk Önbelleği
+### 9.3 Tek Ücretsiz Medya Bulutu: `Supabase Storage` + Yerel Disk Önbelleği
 
 Mevcut ses dosyalarının toplamı şimdiden **~49.17 MB** tutmaktadır (`5_dakika_sakin_yağmur_sesi.mp3` `6.87 MB`, `deep-ocean-shortened.m4a` `14.44 MB`, `Beyaz_Gürültü.mp3` `2.75 MB`, `kahverengi-gurultu-ses.m4a` `14.25 MB`, `HIKAYE_1.mp3` `5.47 MB`, `HIKAYE_2.mp3` `4.02 MB`, `4-7-8_Nefes_Egzersizi.mp3` `1.37 MB`). `firebase_storage` Blaze gerektirdiğinden tüm uzak medya **Supabase Storage** üzerinde tek bir **`MediaStorageGateway`** arayüzüyle yönetilir:
 
@@ -339,7 +385,7 @@ MediaResolverService
   - İstemcide yalnızca `SUPABASE_URL` ve `publishable` (`anon`) anahtar tutulur; RLS'de `auth.role()` yerine `TO authenticated` / `TO anon` kullanılır ve son kullanıcıya yükleme/değiştirme açılmaz (katalog salt okunur CDN).
   - **Sıfır `dart:io` Sızıntısı Kuralı:** Yerel ses önbelleği koşullu import (`if (dart.library.io) 'media_cache_io.dart' else 'media_cache_web.dart'`) ile ayrılır.
 
-### 8.4 Çift Bildirim Mimarisi: `firebase_messaging` + `flutter_local_notifications`
+### 9.4 Çift Bildirim Mimarisi: `firebase_messaging` + `flutter_local_notifications`
 
 | Katman / Paket                            | Görev                                                                                                                  | Ön Plan (Uygulama Açık)                                                         | Arka Plan / Kapalı                                                                |
 | :---------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------- |
@@ -353,7 +399,7 @@ MediaResolverService
     2. Zamanlanmış hatırlatıcı/ön plan uyarısı için tarayıcı `Notification` API (sekme açıksa) + uygulama içi Aura banner (`SnackBar`/toast) olarak çalışır; hatırlatıcı tercihi yine `Drift` + `Firestore`'a kaydedilip diğer cihazlara (macOS/mobil) senkronize olur.
   - **Native Windows (eğer desktop build alınırsa):** `firebase_messaging` native Windows'ta desteklenmediğinden başlatma kodunda `if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows)` koruması uygulanır.
 
-### 8.5 Hedef Platform Hazırlık Listesi (macOS + Windows Web)
+### 9.5 Hedef Platform Hazırlık Listesi (macOS + Windows Web)
 
 1. **macOS Özel Gereksinimleri:**
    - [DebugProfile.entitlements](macos/Runner/DebugProfile.entitlements) ve [Release.entitlements](macos/Runner/Release.entitlements) dosyalarına `<key>com.apple.security.network.client</key><true/>` eklenmeli (şu an eksik; eklenmeden Firebase/Supabase ağ istekleri sandbox tarafından engellenir).
@@ -364,6 +410,6 @@ MediaResolverService
    - **Web Worker & WASM:** `Drift` Web kullanımı için `web/sqlite3.wasm` ve `web/drift_worker.js` dosyaları eklenir (standart `web-server` başlıklarında OPFS mevcut değilse otomatik IndexedDB moduna düşer). Uzak Web Push için `web/firebase-messaging-sw.js` eklenir.
    - **Cam (Blur) Performans Kuralı:** `BackdropFilter` Web'de yüksek maliyetli olduğu için yalnızca odak kartlarında/alt navigasyonda/modalda gerçek blur kullanılır; çok elemanlı listelerde yarı saydam pastel gradient yüzeyi tercih edilir.
 
-### 9 Yapılanları Kaydetme
+### 10. Yapılanları Kaydetme
 
 Yapılan işlerin özetini anlatan hangi dosya ne değiştirildi sonuç ne oldu kaydedilsin. Eğer dosya var ise üzerine eklesin, yok ise oluştursun. Dosya isimleri Tarih_Yapılanlar.md olsun

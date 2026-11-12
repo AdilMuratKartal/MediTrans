@@ -1,4 +1,10 @@
-import 'models.dart';
+import 'models/breath_cadence_model.dart';
+import 'models/frequency_track_model.dart';
+import 'models/mood_option_model.dart';
+import 'models/playable_track_model.dart';
+import 'models/session_category_model.dart';
+import 'models/sleep_media_track_model.dart';
+import 'models/yoga_pose_item_model.dart';
 
 /// Complete Canonical Seed Catalog matching `data_referance.md`, `project.md`,
 /// and the real WAV files in `mediTrack-tasarım-ve-assetler/UYGULAMA-ICI-SESLER/HZ-SESLERI`.
@@ -674,5 +680,24 @@ class SeedCatalog {
       backgroundAsset: b.backgroundAsset,
       durationSeconds: 300,
     );
+  }
+
+  static PlayableTrack? findPlayableById(String id) {
+    for (final f in frequencies) {
+      if (f.id == id) return fromFrequency(f);
+    }
+    for (final n in natureTracks) {
+      if (n.id == id) return fromSleepTrack(n);
+    }
+    for (final n in noiseTracks) {
+      if (n.id == id) return fromSleepTrack(n);
+    }
+    for (final s in storyTracks) {
+      if (s.id == id) return fromSleepTrack(s);
+    }
+    for (final b in breathCadences) {
+      if (b.id == id) return fromBreathCadence(b);
+    }
+    return null;
   }
 }

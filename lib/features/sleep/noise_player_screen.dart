@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/audio/universal_player_bar.dart';
-import '../../core/data/models.dart';
+import '../../core/data/models/sleep_media_track_model.dart';
 import '../../core/data/seed_catalog.dart';
 import '../../core/di/app_scope.dart';
 import '../../core/theme/aura_theme.dart';
@@ -101,8 +101,9 @@ class _NoisePlayerScreenState extends State<NoisePlayerScreen> {
               ),
 
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

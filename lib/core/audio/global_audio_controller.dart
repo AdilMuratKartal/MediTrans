@@ -3,7 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import '../data/local_store.dart';
 import '../data/media_storage_gateway.dart';
-import '../data/models.dart';
+import '../data/models/playable_track_model.dart';
 import '../data/seed_catalog.dart';
 
 /// Singleton-scoped reactive audio engine powering Hz Frequencies, Breathwork,
@@ -40,7 +40,28 @@ class GlobalAudioController extends ChangeNotifier {
     required this.localStore,
     required this.mediaGateway,
   }) {
+    _syncFromLocalStoreTrack();
+    localStore.addListener(_onLocalStoreUpdated);
     _initPlayers();
+  }
+
+  void _syncFromLocalStoreTrack() {
+    final stored = localStore.lastPlayedTrack;
+    _currentTrack = stored;
+    _durationSeconds = stored.durationSeconds > 0 ? stored.durationSeconds : 300;
+    _positionSeconds = stored.lastPositionSeconds.clamp(0, _durationSeconds);
+  }
+
+  void _onLocalStoreUpdated() {
+    if (!_isPlaying) {
+      final stored = localStore.lastPlayedTrack;
+      if (stored.id != _currentTrack.id ||
+          stored.title != _currentTrack.title ||
+          stored.category != _currentTrack.category) {
+        _syncFromLocalStoreTrack();
+        notifyListeners();
+      }
+    }
   }
 
   PlayableTrack get currentTrack => _currentTrack;
@@ -118,13 +139,19 @@ class GlobalAudioController extends ChangeNotifier {
       _playlist = List<PlayableTrack>.from(playlist);
     }
     final isSameTrack = _currentTrack.id == track.id;
-    _currentTrack = track;
     _durationSeconds = track.durationSeconds > 0 ? track.durationSeconds : 300;
     if (!isSameTrack) {
       _positionSeconds = 0;
       _clipDurationSeconds = 0;
     }
-    await localStore.setLastPlayedTrackId(track.id);
+    _currentTrack = track.copyWith(
+      lastPositionSeconds: _positionSeconds,
+      updatedAt: DateTime.now(),
+    );
+    await localStore.setLastPlayedTrack(
+      _currentTrack,
+      positionSeconds: _positionSeconds,
+    );
 
     if (!autoPlay) {
       await pause();
@@ -174,6 +201,14 @@ class GlobalAudioController extends ChangeNotifier {
     try {
       await _mainPlayer?.pause();
     } catch (_) {}
+    _currentTrack = _currentTrack.copyWith(
+      lastPositionSeconds: _positionSeconds,
+      updatedAt: DateTime.now(),
+    );
+    await localStore.setLastPlayedTrack(
+      _currentTrack,
+      positionSeconds: _positionSeconds,
+    );
     notifyListeners();
   }
 
@@ -191,6 +226,14 @@ class GlobalAudioController extends ChangeNotifier {
         await _mainPlayer?.seek(Duration(seconds: safeClipTarget));
       }
     } catch (_) {}
+    _currentTrack = _currentTrack.copyWith(
+      lastPositionSeconds: _positionSeconds,
+      updatedAt: DateTime.now(),
+    );
+    await localStore.setLastPlayedTrack(
+      _currentTrack,
+      positionSeconds: _positionSeconds,
+    );
     notifyListeners();
   }
 
@@ -295,6 +338,7 @@ class GlobalAudioController extends ChangeNotifier {
 
   @override
   void dispose() {
+    localStore.removeListener(_onLocalStoreUpdated);
     _progressTimer?.cancel();
     _sleepTimer?.cancel();
     _mainPlayer?.dispose();

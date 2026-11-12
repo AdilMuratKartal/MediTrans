@@ -7,6 +7,7 @@ import 'core/data/media_storage_gateway.dart';
 import 'core/di/app_scope.dart';
 import 'core/platform/notification_gateway.dart';
 import 'core/theme/aura_theme.dart';
+import 'features/auth/login_screen.dart';
 import 'features/shell/aura_shell.dart';
 
 Future<void> main() async {
@@ -40,6 +41,7 @@ Future<void> main() async {
       cloudSync: cloudSync,
       notifications: notifications,
       audio: audioController,
+      requireAuthGate: true,
     ),
   );
 }
@@ -51,6 +53,7 @@ class MediTransApp extends StatefulWidget {
   final CloudSyncService? cloudSync;
   final NotificationGateway? notifications;
   final GlobalAudioController? audio;
+  final bool requireAuthGate;
 
   const MediTransApp({
     super.key,
@@ -60,6 +63,7 @@ class MediTransApp extends StatefulWidget {
     this.cloudSync,
     this.notifications,
     this.audio,
+    this.requireAuthGate = false,
   });
 
   @override
@@ -108,7 +112,15 @@ class _MediTransAppState extends State<MediTransApp> {
         title: 'MediTrans — Aura Mind',
         debugShowCheckedModeBanner: false,
         theme: AuraTheme.lightTheme(),
-        home: const AuraShell(),
+        home: ListenableBuilder(
+          listenable: _cloudSync,
+          builder: (context, _) {
+            if (widget.requireAuthGate && !_cloudSync.hasEnteredApp) {
+              return const LoginScreen();
+            }
+            return const AuraShell();
+          },
+        ),
       ),
     );
   }

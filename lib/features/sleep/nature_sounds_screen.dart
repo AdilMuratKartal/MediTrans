@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/audio/universal_player_bar.dart';
-import '../../core/data/models.dart';
+import '../../core/data/models/sleep_media_track_model.dart';
 import '../../core/data/seed_catalog.dart';
 import '../../core/di/app_scope.dart';
 import '../../core/theme/aura_theme.dart';

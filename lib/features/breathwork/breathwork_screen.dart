@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/audio/global_audio_controller.dart';
-import '../../core/data/models.dart';
+import '../../core/data/models/breath_cadence_model.dart';
+import '../../core/data/models/session_category_model.dart';
 import '../../core/data/seed_catalog.dart';
 import '../../core/di/app_scope.dart';
 import '../../core/theme/aura_theme.dart';

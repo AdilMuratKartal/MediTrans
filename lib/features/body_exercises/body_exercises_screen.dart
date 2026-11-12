@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/data/models.dart';
+import '../../core/data/models/yoga_pose_item_model.dart';
 import '../../core/data/seed_catalog.dart';
 import '../../core/theme/aura_theme.dart';
 import 'pose_detail_screen.dart';

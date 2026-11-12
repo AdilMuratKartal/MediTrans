@@ -3,7 +3,12 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'models.dart';
+import 'models/mood_entry_model.dart';
+import 'models/playable_track_model.dart';
+import 'models/session_category_model.dart';
+import 'models/session_history_entry_model.dart';
+import 'models/sync_outbox_item_model.dart';
+import 'models/user_profile_model.dart';
 import 'seed_catalog.dart';
 
 /// Drift SQLite / WASM Database Engine (`meditrans_local_db`) executing canonical DDL
@@ -85,6 +90,28 @@ class MediTransDriftDb extends GeneratedDatabase {
               created_at INTEGER NOT NULL
             )
           ''');
+      await customStatement('''
+            CREATE TABLE IF NOT EXISTS last_played_track (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL DEFAULT 'local_user',
+              category TEXT NOT NULL,
+              title_tr TEXT NOT NULL,
+              subtitle_tr TEXT NOT NULL,
+              metadata_json TEXT NOT NULL,
+              last_position_seconds INTEGER NOT NULL DEFAULT 0,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+      await customStatement('''
+            CREATE TABLE IF NOT EXISTS weekly_habits (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL,
+              habits_json TEXT NOT NULL,
+              daily_reminder_time TEXT NOT NULL,
+              notifications_enabled INTEGER NOT NULL DEFAULT 1,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
     },
   );
 }
@@ -99,10 +126,14 @@ class LocalStore extends ChangeNotifier {
   static const String _kOutboxKey = 'aura.sync_outbox.v1';
   static const String _kBellEnabledKey = 'aura.yoga.bell_enabled';
   static const String _kLastFreqIdKey = 'aura.audio.last_track_id';
+  static const String _kLastTrackMetaKey = 'aura.audio.last_track_metadata.v1';
 
   SharedPreferences? _prefs;
   MediTransDriftDb? _driftDb;
   bool _driftReady = false;
+  bool _hasLocalMoodData = false;
+  bool _hasLocalLastPlayedData = false;
+  VoidCallback? onSyncRequested;
 
   UserProfileModel _profile = const UserProfileModel(
     uid: 'local_user',
@@ -122,6 +153,12 @@ class LocalStore extends ChangeNotifier {
   final List<SyncOutboxItem> _outbox = [];
   bool _yogaBellEnabled = true;
   String _lastPlayedTrackId = 'hz_432';
+  PlayableTrack _lastPlayedTrack = SeedCatalog.fromFrequency(
+    SeedCatalog.frequencies.firstWhere(
+      (f) => f.id == 'hz_432',
+      orElse: () => SeedCatalog.frequencies.first,
+    ),
+  );
 
   UserProfileModel get profile => _profile;
   List<SessionHistoryEntry> get sessions => List.unmodifiable(_sessions);
@@ -129,7 +166,10 @@ class LocalStore extends ChangeNotifier {
   List<SyncOutboxItem> get outbox => List.unmodifiable(_outbox);
   bool get yogaBellEnabled => _yogaBellEnabled;
   String get lastPlayedTrackId => _lastPlayedTrackId;
+  PlayableTrack get lastPlayedTrack => _lastPlayedTrack;
   bool get isDriftActive => _driftReady;
+  bool get hasLocalMoodData => _hasLocalMoodData;
+  bool get hasLocalLastPlayedData => _hasLocalLastPlayedData;
 
   Future<void> initialize() async {
     _buildDefaultWeekSeed();
@@ -144,6 +184,7 @@ class LocalStore extends ChangeNotifier {
         _driftDb = MediTransDriftDb();
         await _driftDb!.customSelect('SELECT 1').get();
         _driftReady = true;
+        await _loadFromDriftIfNeeded();
       } catch (_) {
         _driftReady = false;
       }
@@ -210,7 +251,13 @@ class LocalStore extends ChangeNotifier {
           final entry = MoodEntry.fromJson(item as Map<String, dynamic>);
           if (entry.dateKey.isNotEmpty) {
             _moodsByDate[entry.dateKey] = entry;
+            if (!entry.id.startsWith('seed_')) {
+              _hasLocalMoodData = true;
+            }
           }
+        }
+        if (list.isNotEmpty) {
+          _hasLocalMoodData = true;
         }
       } catch (_) {}
     }
@@ -249,7 +296,72 @@ class LocalStore extends ChangeNotifier {
     }
 
     _yogaBellEnabled = prefs.getBool(_kBellEnabledKey) ?? true;
-    _lastPlayedTrackId = prefs.getString(_kLastFreqIdKey) ?? 'hz_432';
+    final savedTrackId = prefs.getString(_kLastFreqIdKey);
+    if (savedTrackId != null && savedTrackId.isNotEmpty) {
+      _lastPlayedTrackId = savedTrackId;
+      _hasLocalLastPlayedData = true;
+      final catalogMatch = SeedCatalog.findPlayableById(savedTrackId);
+      if (catalogMatch != null) {
+        _lastPlayedTrack = catalogMatch;
+      }
+    }
+
+    final rawLastTrackMeta = prefs.getString(_kLastTrackMetaKey);
+    if (rawLastTrackMeta != null && rawLastTrackMeta.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawLastTrackMeta) as Map<String, dynamic>;
+        _lastPlayedTrack = PlayableTrack.fromJson(decoded);
+        _lastPlayedTrackId = _lastPlayedTrack.id;
+        _hasLocalLastPlayedData = true;
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _loadFromDriftIfNeeded() async {
+    final db = _driftDb;
+    if (!_driftReady || db == null) return;
+
+    try {
+      if (!_hasLocalLastPlayedData) {
+        final rows = await db
+            .customSelect(
+              'SELECT metadata_json FROM last_played_track ORDER BY updated_at DESC LIMIT 1',
+            )
+            .get();
+        if (rows.isNotEmpty) {
+          final rawJson = rows.first.read<String>('metadata_json');
+          final map = jsonDecode(rawJson) as Map<String, dynamic>;
+          _lastPlayedTrack = PlayableTrack.fromJson(map);
+          _lastPlayedTrackId = _lastPlayedTrack.id;
+          _hasLocalLastPlayedData = true;
+        }
+      }
+
+      if (!_hasLocalMoodData) {
+        final rows = await db.customSelect('SELECT * FROM mood_logs').get();
+        if (rows.isNotEmpty) {
+          for (final r in rows) {
+            final codesRaw = r.read<String>('mood_codes_json');
+            final codes = (jsonDecode(codesRaw) as List<dynamic>)
+                .map((e) => '$e')
+                .toList();
+            final entry = MoodEntry(
+              id: r.read<String>('id'),
+              dateKey: r.read<String>('date_key'),
+              loggedAt: DateTime.fromMillisecondsSinceEpoch(
+                r.read<int>('logged_at'),
+              ),
+              moodCodes: codes,
+              averageScore: r.read<int>('average_score'),
+              reflectionNote: r.readNullable<String>('reflection_note'),
+              isSynced: r.read<int>('is_synced') == 1,
+            );
+            _moodsByDate[entry.dateKey] = entry;
+          }
+          _hasLocalMoodData = true;
+        }
+      }
+    } catch (_) {}
   }
 
   static String formatDateKey(DateTime dt) {
@@ -287,6 +399,28 @@ class LocalStore extends ChangeNotifier {
     return List.generate(7, (index) {
       final d = monday.add(Duration(days: index));
       return getMoodForDate(d);
+    });
+  }
+
+  /// Returns a serializable 7-day mood chart payload for Firestore sync (`mood_charts` collection).
+  List<Map<String, dynamic>> getWeeklyMoodChartPayload({
+    String? overrideUserId,
+  }) {
+    const dayLabels = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    final resolvedUid = overrideUserId ?? _profile.uid;
+    final moods = getCurrentWeekMoods();
+    return List.generate(moods.length, (i) {
+      final m = moods[i];
+      return {
+        'id': '${resolvedUid}_${m.dateKey}',
+        'userId': resolvedUid,
+        'dateKey': m.dateKey,
+        'dayLabelTr': i < dayLabels.length ? dayLabels[i] : '',
+        'moodCodes': m.moodCodes,
+        'averageScore': m.averageScore,
+        'reflectionNote': m.reflectionNote,
+        'loggedAt': m.loggedAt.toIso8601String(),
+      };
     });
   }
 
@@ -332,12 +466,31 @@ class LocalStore extends ChangeNotifier {
   }
 
   Future<void> _saveMoodEntry(MoodEntry entry) async {
-    _moodsByDate[entry.dateKey] = entry;
+    final normalizedEntry = entry.copyWith(
+      id: 'mood_${entry.dateKey}',
+      userId: _profile.uid,
+    );
+
+    _moodsByDate[normalizedEntry.dateKey] = normalizedEntry;
+    _hasLocalMoodData = true;
     _enqueueOutbox(
       entityType: 'mood',
-      entityId: entry.id,
+      entityId: normalizedEntry.id,
       operation: 'UPSERT',
-      payload: entry.toJson(),
+      payload: normalizedEntry.toJson(overrideUserId: _profile.uid),
+    );
+    _enqueueOutbox(
+      entityType: 'mood_chart',
+      entityId: 'chart_${_profile.uid}',
+      operation: 'UPSERT',
+      payload: {
+        'id': 'chart_${_profile.uid}',
+        'userId': _profile.uid,
+        'weeklyMoodChart': getWeeklyMoodChartPayload(
+          overrideUserId: _profile.uid,
+        ),
+        'updatedAt': DateTime.now().toIso8601String(),
+      },
     );
     await _persistMoods();
 
@@ -350,18 +503,22 @@ class LocalStore extends ChangeNotifier {
           VALUES (?, ?, ?, ?, ?, ?, ?)
           ''',
           [
-            entry.id,
-            entry.dateKey,
-            entry.loggedAt.millisecondsSinceEpoch,
-            jsonEncode(entry.moodCodes),
-            entry.averageScore,
-            entry.reflectionNote,
-            entry.isSynced ? 1 : 0,
+            normalizedEntry.id,
+            normalizedEntry.dateKey,
+            normalizedEntry.loggedAt.millisecondsSinceEpoch,
+            jsonEncode(normalizedEntry.moodCodes),
+            normalizedEntry.averageScore,
+            normalizedEntry.reflectionNote,
+            normalizedEntry.isSynced ? 1 : 0,
           ],
         );
       } catch (_) {}
     }
+    debugPrint(
+      '[LocalStore] Yerel depoya kaydedildi (Duygu & Grafik): userId=${_profile.uid}, tarih=${normalizedEntry.dateKey}, etiketler=${normalizedEntry.moodCodes}, skor=${normalizedEntry.averageScore}, not="${normalizedEntry.reflectionNote}"',
+    );
     notifyListeners();
+    onSyncRequested?.call();
   }
 
   Future<void> recordCompletedSession({
@@ -372,6 +529,7 @@ class LocalStore extends ChangeNotifier {
   }) async {
     final entry = SessionHistoryEntry(
       id: 'sess_${DateTime.now().millisecondsSinceEpoch}',
+      userId: _profile.uid,
       category: category,
       itemId: itemId,
       titleTr: titleTr,
@@ -384,7 +542,7 @@ class LocalStore extends ChangeNotifier {
       entityType: 'session',
       entityId: entry.id,
       operation: 'UPSERT',
-      payload: entry.toJson(),
+      payload: entry.toJson(overrideUserId: _profile.uid),
     );
     await _prefs?.setString(
       _kSessionHistoryKey,
@@ -410,6 +568,7 @@ class LocalStore extends ChangeNotifier {
       } catch (_) {}
     }
     notifyListeners();
+    onSyncRequested?.call();
   }
 
   Future<void> updateProfile(UserProfileModel updated) async {
@@ -418,7 +577,13 @@ class LocalStore extends ChangeNotifier {
       entityType: 'profile',
       entityId: updated.uid,
       operation: 'UPSERT',
-      payload: updated.toJson(),
+      payload: updated.toJson(overrideUserId: updated.uid),
+    );
+    _enqueueOutbox(
+      entityType: 'weekly_habits',
+      entityId: 'habits_${updated.uid}',
+      operation: 'UPSERT',
+      payload: updated.toWeeklyHabitsPayload(overrideUserId: updated.uid),
     );
     await _prefs?.setString(_kProfileKey, jsonEncode(updated.toJson()));
     if (_driftReady && _driftDb != null) {
@@ -441,9 +606,28 @@ class LocalStore extends ChangeNotifier {
             updated.notificationsEnabled ? 1 : 0,
           ],
         );
+        await _driftDb!.customStatement(
+          '''
+          INSERT OR REPLACE INTO weekly_habits
+          (id, user_id, habits_json, daily_reminder_time, notifications_enabled, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?)
+          ''',
+          [
+            'habits_${updated.uid}',
+            updated.uid,
+            jsonEncode(updated.habitsTr),
+            updated.dailyReminderTime,
+            updated.notificationsEnabled ? 1 : 0,
+            DateTime.now().millisecondsSinceEpoch,
+          ],
+        );
       } catch (_) {}
     }
+    debugPrint(
+      '[LocalStore] Yerel depoya kaydedildi (Profil & Weekly Habits): userId=${updated.uid}, habits=${updated.habitsTr}',
+    );
     notifyListeners();
+    onSyncRequested?.call();
   }
 
   bool isFavorite(String itemId) => _favoriteIds.contains(itemId);
@@ -460,12 +644,15 @@ class LocalStore extends ChangeNotifier {
       entityId: itemId,
       operation: added ? 'UPSERT' : 'DELETE',
       payload: {
+        'id': '${_profile.uid}_$itemId',
+        'userId': _profile.uid,
         'itemId': itemId,
         'updatedAt': DateTime.now().toIso8601String(),
       },
     );
     await _prefs?.setStringList(_kFavoritesKey, _favoriteIds.toList());
     notifyListeners();
+    onSyncRequested?.call();
   }
 
   Future<void> setYogaBellEnabled(bool enabled) async {
@@ -474,9 +661,209 @@ class LocalStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setLastPlayedTrack(
+    PlayableTrack track, {
+    int? positionSeconds,
+    bool syncToCloud = true,
+  }) async {
+    final now = DateTime.now();
+    final updatedTrack = track.copyWith(
+      userId: _profile.uid,
+      lastPositionSeconds: positionSeconds ?? track.lastPositionSeconds,
+      updatedAt: now,
+    );
+    _lastPlayedTrack = updatedTrack;
+    _lastPlayedTrackId = updatedTrack.id;
+    _hasLocalLastPlayedData = true;
+
+    final trackJson = updatedTrack.toJson(overrideUserId: _profile.uid);
+    await _prefs?.setString(_kLastFreqIdKey, updatedTrack.id);
+    await _prefs?.setString(_kLastTrackMetaKey, jsonEncode(trackJson));
+
+    if (_driftReady && _driftDb != null) {
+      try {
+        await _driftDb!.customStatement(
+          '''
+          INSERT OR REPLACE INTO last_played_track
+          (id, user_id, category, title_tr, subtitle_tr, metadata_json, last_position_seconds, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ''',
+          [
+            updatedTrack.id,
+            _profile.uid,
+            updatedTrack.category.name,
+            updatedTrack.title,
+            updatedTrack.subtitle,
+            jsonEncode(trackJson),
+            updatedTrack.lastPositionSeconds,
+            now.millisecondsSinceEpoch,
+          ],
+        );
+      } catch (_) {}
+    }
+
+    if (syncToCloud) {
+      debugPrint(
+        '[LocalStore] Yerel depoya kaydedildi (Son Dinlenen): userId=${_profile.uid}, "${updatedTrack.title}" [${updatedTrack.categoryLabelTr}] (id=${updatedTrack.id}, konum=${updatedTrack.lastPositionSeconds}sn)',
+      );
+      _enqueueOutbox(
+        entityType: 'last_played',
+        entityId: updatedTrack.id,
+        operation: 'UPSERT',
+        payload: trackJson,
+      );
+      notifyListeners();
+      onSyncRequested?.call();
+    } else {
+      notifyListeners();
+    }
+  }
+
   Future<void> setLastPlayedTrackId(String trackId) async {
-    _lastPlayedTrackId = trackId;
-    await _prefs?.setString(_kLastFreqIdKey, trackId);
+    final resolved = SeedCatalog.findPlayableById(trackId);
+    if (resolved != null) {
+      await setLastPlayedTrack(resolved);
+    } else {
+      _lastPlayedTrackId = trackId;
+      await _prefs?.setString(_kLastFreqIdKey, trackId);
+    }
+  }
+
+  /// Hydrates local store from Firebase Cloud Firestore relational collections
+  /// (`users`, `weekly_habits`, `last_played_tracks`, `mood_charts`, `mood_logs`, `user_favorites`)
+  /// when local data is missing or when an authenticated pull is requested.
+  Future<void> hydrateFromFirestore({
+    Map<String, dynamic>? userDocData,
+    Map<String, dynamic>? weeklyHabitsDocData,
+    Map<String, dynamic>? lastPlayedDocData,
+    Map<String, dynamic>? moodChartDocData,
+    List<Map<String, dynamic>>? moodLogDocs,
+    List<Map<String, dynamic>>? favoriteDocs,
+    bool preferRemote = false,
+  }) async {
+    var changed = false;
+
+    // 1. User Profile (`users/{userId}`) & Weekly Habits (`weekly_habits/{userId}`)
+    if (userDocData != null || weeklyHabitsDocData != null) {
+      try {
+        final mergedProfileMap = <String, dynamic>{
+          ..._profile.toJson(),
+          ...?userDocData,
+          if (weeklyHabitsDocData != null &&
+              weeklyHabitsDocData['habitsTr'] is List)
+            'habitsTr': weeklyHabitsDocData['habitsTr'],
+          if (weeklyHabitsDocData != null &&
+              weeklyHabitsDocData['dailyReminderTime'] is String)
+            'dailyReminderTime': weeklyHabitsDocData['dailyReminderTime'],
+        };
+        _profile = UserProfileModel.fromJson(mergedProfileMap);
+        await _prefs?.setString(_kProfileKey, jsonEncode(_profile.toJson()));
+        changed = true;
+      } catch (_) {}
+    }
+
+    // 2. Last Played Track (`last_played_tracks/{userId}` or fallback from `users/{userId}.lastPlayedTrack`)
+    final rawLastPlayed =
+        lastPlayedDocData ??
+        (userDocData != null && userDocData['lastPlayedTrack'] is Map
+            ? Map<String, dynamic>.from(userDocData['lastPlayedTrack'] as Map)
+            : null);
+    if (rawLastPlayed != null && (!_hasLocalLastPlayedData || preferRemote)) {
+      try {
+        final parsed = PlayableTrack.fromJson(rawLastPlayed);
+        await setLastPlayedTrack(parsed, syncToCloud: false);
+        changed = true;
+      } catch (_) {}
+    }
+
+    // 3. Weekly Mood Chart (`mood_charts/{userId}` or fallback from `users/{userId}.weeklyMoodChart`)
+    final remoteChartList =
+        (moodChartDocData != null &&
+            moodChartDocData['weeklyMoodChart'] is List)
+        ? moodChartDocData['weeklyMoodChart'] as List
+        : (userDocData != null && userDocData['weeklyMoodChart'] is List
+              ? userDocData['weeklyMoodChart'] as List
+              : null);
+    if (remoteChartList != null && (!_hasLocalMoodData || preferRemote)) {
+      var chartApplied = false;
+      for (final item in remoteChartList) {
+        if (item is Map) {
+          try {
+            final map = Map<String, dynamic>.from(item);
+            final entry = MoodEntry.fromJson(map);
+            _moodsByDate[entry.dateKey] = entry;
+            chartApplied = true;
+            changed = true;
+          } catch (_) {}
+        }
+      }
+      if (chartApplied) {
+        _hasLocalMoodData = true;
+        await _persistMoods();
+      }
+    }
+
+    // 4. Individual `mood_logs` documents (queried by `userId`)
+    if (moodLogDocs != null &&
+        moodLogDocs.isNotEmpty &&
+        (!_hasLocalMoodData || preferRemote)) {
+      for (final docMap in moodLogDocs) {
+        try {
+          final entry = MoodEntry.fromJson(docMap);
+          _moodsByDate[entry.dateKey] = entry;
+          if (_driftReady && _driftDb != null) {
+            await _driftDb!.customStatement(
+              '''
+              INSERT OR REPLACE INTO mood_logs
+              (id, date_key, logged_at, mood_codes_json, average_score, reflection_note, is_synced)
+              VALUES (?, ?, ?, ?, ?, ?, 1)
+              ''',
+              [
+                entry.id,
+                entry.dateKey,
+                entry.loggedAt.millisecondsSinceEpoch,
+                jsonEncode(entry.moodCodes),
+                entry.averageScore,
+                entry.reflectionNote,
+              ],
+            );
+          }
+          changed = true;
+        } catch (_) {}
+      }
+      if (changed) {
+        _hasLocalMoodData = true;
+        await _persistMoods();
+      }
+    }
+
+    // 5. Favorites (`user_favorites` collection queried by `userId` or fallback array)
+    if (favoriteDocs != null &&
+        favoriteDocs.isNotEmpty &&
+        (_favoriteIds.isEmpty || preferRemote)) {
+      _favoriteIds
+        ..clear()
+        ..addAll(
+          favoriteDocs
+              .map((d) => d['itemId']?.toString() ?? '')
+              .where((id) => id.isNotEmpty),
+        );
+      await _prefs?.setStringList(_kFavoritesKey, _favoriteIds.toList());
+      changed = true;
+    } else if (userDocData != null &&
+        userDocData['favorites'] is List &&
+        (_favoriteIds.isEmpty || preferRemote)) {
+      final remoteFavs = userDocData['favorites'] as List;
+      _favoriteIds
+        ..clear()
+        ..addAll(remoteFavs.map((e) => e.toString()));
+      await _prefs?.setStringList(_kFavoritesKey, _favoriteIds.toList());
+      changed = true;
+    }
+
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   void _enqueueOutbox({

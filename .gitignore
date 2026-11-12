@@ -47,9 +47,8 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-#FİREBASE   
-lib/firebase_options.dart
-firebase.json
+# Firebase configuration (Tracked for seamless multi-platform builds across computers)
+# lib/firebase_options.dart and firebase.json are tracked so other machines can build immediately.
 
 # Environment & Secret Definitions
 .env

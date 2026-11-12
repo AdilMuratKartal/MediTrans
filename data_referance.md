@@ -9,451 +9,384 @@ Bu doküman; **MediTrans** uygulamasının çevrimdışı-öncelikli yerel verit
 
 ---
 
-## 1. Varlık İlişki Diyagramı (ERD)
+## 1. İlişkisel Koleksiyonlar ve Varlık İlişki Diyagramı (ERD)
+
+Tüm üst düzey Firestore koleksiyonları ve yerel SQLite (`Drift`) tabloları **`userId`** (`users/{userId}` birincil anahtarına işaret eden yabancı anahtar / Foreign Key) üzerinden birbirine bağlanır. Böylece her koleksiyon bağımsız olarak sorgulanabilir ve içindeki `userId` alanından hangi kullanıcıya ait olduğuna doğrudan gidilebilir.
 
 ```mermaid
 erDiagram
-    USER_PROFILE ||--o{ MOOD_LOG : "yazar"
-    USER_PROFILE ||--o{ HABIT_ROUTINE : "sahip olur"
-    USER_PROFILE ||--o{ REMINDER_SCHEDULE : "zamanlar"
-    USER_PROFILE ||--o{ DEVICE_PUSH_TOKEN : "kaydeder"
-    USER_PROFILE ||--o{ PLAYBACK_SESSION : "dinler"
+    USERS ||--|| WEEKLY_HABITS : "userId ile baglanir (1:1)"
+    USERS ||--|| LAST_PLAYED_TRACKS : "userId ile baglanir (1:1)"
+    USERS ||--|| MOOD_CHARTS : "userId ile baglanir (1:1)"
+    USERS ||--o{ MOOD_LOGS : "userId ile baglanir (1:N)"
+    USERS ||--o{ SESSION_HISTORY : "userId ile baglanir (1:N)"
+    USERS ||--o{ USER_FAVORITES : "userId ile baglanir (1:N)"
 
-    MEDIA_TRACK ||--o| CACHED_MEDIA : "yerelde onbellekler"
-    SLEEP_STORY ||--|| MEDIA_TRACK : "ses dosyasina baglanir"
-    BREATH_CADENCE ||--o| MEDIA_TRACK : "rehber sese baglanir"
-
-    USER_PROFILE {
-        string uid PK
-        string display_name
+    USERS {
+        string uid PK "Belge Kimligi (userId)"
+        string userId "users/{userId}"
+        string displayName
         string email
-        int age_years
-        double weight_kg
-        string mindful_title
-        int level
-        datetime updated_at
-        string sync_status
+        string levelTitleTr
+        int ageYears
+        double weightKg
+        string dailyReminderTime
+        bool notificationsEnabled
+        string updatedAt
     }
 
-    MOOD_LOG {
-        string id PK
-        string user_id FK
-        string date_key "yyyy-MM-dd"
-        string tags_json "emoji + label list"
-        string note
-        double mood_score "0.0 - 10.0"
-        datetime updated_at
-        string sync_status
+    WEEKLY_HABITS {
+        string id PK "habits_{userId}"
+        string userId FK "-> USERS.uid"
+        string userEmail
+        string displayName
+        array habitsTr "Aliskanlik baslik listesi"
+        array habitItems "Her biri {id, userId, orderIndex, title, isActive}"
+        string dailyReminderTime
+        bool notificationsEnabled
+        string updatedAt
     }
 
-    HABIT_ROUTINE {
-        string id PK
-        string user_id FK
-        string title
-        string icon_key
-        int target_minutes
-        bool is_active
-        string sync_status
-    }
-
-    MEDIA_TRACK {
-        string id PK
-        string category "breath|hz|angel|nature|noise|story"
+    LAST_PLAYED_TRACKS {
+        string id PK "last_played_{userId}"
+        string userId FK "-> USERS.uid"
+        string userEmail
+        string trackId "hz_432 | nature_rain | story_1 vb."
+        string category "frequency | natureSound | noiseSound | sleepStory | breathwork"
+        string categoryLabelTr "Hz Frekansi | Doga Sesi | Uyku Hikayesi vb."
         string title
         string subtitle
-        int duration_ms
-        string primary_provider "supabase|bundled"
-        string primary_bucket
-        string primary_path
-        string fallback_bundled_asset "opsiyonel kisa onizleme/zil"
-        string backdrop_asset
-        string accent_hex
-        int size_bytes
-        string sha256
+        object metadata "{id, userId, localAudioAsset, remoteStoragePath, backgroundAsset, durationSeconds, lastPositionSeconds, frequencyHz, updatedAt}"
+        int lastPositionSeconds
+        string updatedAt
     }
 
-    CACHED_MEDIA {
-        string media_id PK
-        string local_relative_path "native only"
-        int cached_bytes
-        string etag
-        datetime last_accessed_at
-        bool is_pinned_offline
+    MOOD_CHARTS {
+        string id PK "chart_{userId}"
+        string userId FK "-> USERS.uid"
+        string userEmail
+        array weeklyMoodChart "7 gunluk Pzt..Paz duygu grafigi dizisi"
+        string updatedAt
     }
 
-    REMINDER_SCHEDULE {
-        string id PK
-        string user_id FK
-        string channel "daily_mood|sleep_winddown|breath"
-        string title
-        string body
-        int hour
-        int minute
-        int weekdays_bitmask
-        bool enabled
-        string deep_link_route
+    MOOD_LOGS {
+        string id PK "{userId}_{dateKey}"
+        string userId FK "-> USERS.uid"
+        string userEmail
+        string dateKey "yyyy-MM-dd"
+        array moodCodes "['mutlu', 'sakin']"
+        int averageScore "1..5"
+        string reflectionNote "Gunluk yansima notu"
+        string loggedAt
     }
 
-    DEVICE_PUSH_TOKEN {
-        string token PK
-        string user_id FK
-        string platform "macos|web|android|ios"
-        datetime updated_at
+    SESSION_HISTORY {
+        string id PK "{userId}_{sessionId}"
+        string userId FK "-> USERS.uid"
+        string userEmail
+        string category
+        string categoryLabelTr
+        string itemId
+        string titleTr
+        int completedSeconds
+        string completedAt
     }
 
-    SYNC_OUTBOX {
-        int id PK
-        string entity_type
-        string entity_id
-        string operation "upsert|delete"
-        string payload_json
-        int retry_count
-        datetime created_at
+    USER_FAVORITES {
+        string id PK "{userId}_{itemId}"
+        string userId FK "-> USERS.uid"
+        string userEmail
+        string itemId
+        string updatedAt
     }
 ```
 
 ---
 
-## 2. Çekirdek Dart Veri Modelleri
+## 2. Uygulamada Kullanılan Gerçek Çekirdek Dart Veri Modelleri (`lib/core/data/models.dart`)
 
-### 2.1 Senkronizasyon & Sağlayıcı Enum'ları
+Aşağıdaki modeller doğrudan uygulama kaynak kodundaki (`lib/core/data/models.dart`, `lib/core/data/local_store.dart`, `lib/core/data/cloud_sync_service.dart`) aktif sınıflarla birebir uyumludur.
+
+### 2.1 Kategori Enum'u (`SessionCategory`)
 
 ```dart
-enum SyncStatus {
-  synced,
-  pendingUpsert,
-  pendingDelete,
-  failed,
-}
+enum SessionCategory {
+  breathwork,   // 'Nefes Egzersizi'
+  yogaPose,     // 'Beden Egzersizi (Yoga)'
+  frequency,    // 'Hz Frekansı & Rezonans'
+  natureSound,  // 'Doğa Sesi'
+  noiseSound,   // 'Gürültü Sesi'
+  sleepStory;   // 'Uyku Hikayesi'
 
-enum StorageProvider {
-  bundledAsset,
-  supabaseStorage,
-}
-
-enum MediaCategory {
-  breathwork,
-  frequencyHz,
-  angelNumber,
-  natureSound,
-  noise,
-  sleepStory,
-}
-
-enum AppPlatformTarget {
-  macOS,
-  webChromeOrServer,
-  android,
-  iOS,
-  windowsDesktop,
+  String get labelTr;
 }
 ```
 
-### 2.2 Kullanıcı Profili & Alışkanlıklar (`profil_ve_duygu_analizi`)
+### 2.2 En Son Dinlenen İçerik ve Medya Metadata Modeli (`PlayableTrack`)
+
+Kullanıcının en son dinlediği ses/medya içeriği; **kategorisi** (`category`, `categoryLabelTr`), **ismi** (`title`, `subtitle`) ve **metadata bilgileri** (`id`, `localAudioAsset`, `remoteStoragePath`, `backgroundAsset`, `durationSeconds`, `lastPositionSeconds`, `frequencyHz`, `updatedAt`) ile hem yerel depoda (`SharedPreferences` + `Drift`) hem de Cloud Firestore'da (`users/{uid}.lastPlayedTrack`) saklanır.
+
+```dart
+class PlayableTrack {
+  final String id;                   // Örn: 'hz_432', 'nature_rain', 'story_1'
+  final String title;                // Örn: '432 Hz • Evrensel Uyum', 'Gece Yağmuru'
+  final String subtitle;             // Örn: 'Derin Huzur • Ruhsal Denge'
+  final SessionCategory category;    // frequency | natureSound | noiseSound | sleepStory | breathwork
+  final String localAudioAsset;      // Örn: 'audio/hz_432.wav'
+  final String remoteStoragePath;    // Örn: 'frequencies/hz_432.wav', 'nature/5_dakika_sakin_yagmur_sesi.mp3'
+  final String? backgroundAsset;     // Örn: 'assets/images/DOGA-SESLERI-YAGMUR-BACKGROUND.jpg'
+  final int durationSeconds;         // Örn: 900 (15 dk)
+  final double? frequencyHz;         // Örn: 432.0 (yalnızca Hz frekanslarında)
+  final int lastPositionSeconds;     // En son kalınan saniye
+  final DateTime? updatedAt;         // Son dinlenme zaman damgası
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'subtitle': subtitle,
+    'category': category.name,
+    'categoryLabelTr': category.labelTr,
+    'metadata': {
+      'id': id,
+      'localAudioAsset': localAudioAsset,
+      'remoteStoragePath': remoteStoragePath,
+      'backgroundAsset': backgroundAsset,
+      'durationSeconds': durationSeconds,
+      'lastPositionSeconds': lastPositionSeconds,
+      'frequencyHz': frequencyHz,
+      'updatedAt': (updatedAt ?? DateTime.now()).toIso8601String(),
+    },
+    // Geriye dönük uyumluluk için üst düzey alanlar:
+    'localAudioAsset': localAudioAsset,
+    'remoteStoragePath': remoteStoragePath,
+    'backgroundAsset': backgroundAsset,
+    'durationSeconds': durationSeconds,
+    'lastPositionSeconds': lastPositionSeconds,
+    'frequencyHz': frequencyHz,
+    'updatedAt': (updatedAt ?? DateTime.now()).toIso8601String(),
+  };
+}
+```
+
+### 2.3 Duygu Durumu & Haftalık Duygu Grafiği Modeli (`MoodEntry` & `weeklyMoodChart`)
+
+```dart
+class MoodEntry {
+  final String id;                   // 'mood_yyyy-MM-dd'
+  final String dateKey;              // 'yyyy-MM-dd' (Örn: '2026-11-12')
+  final DateTime loggedAt;
+  final List<String> moodCodes;      // Örn: ['mutlu', 'sakin', 'odakli']
+  final int averageScore;            // 1..5 aralığında duygu grafiği skoru
+  final String reflectionNote;       // Kullanıcının günlük yansıma notu
+  final bool isSynced;
+}
+```
+
+Firestore'a kaydedilen 7 günlük **Duygu Grafiği** (`weeklyMoodChart`) yükü (`LocalStore.getWeeklyMoodChartPayload()`):
+
+```json
+[
+  {
+    "id": "mood_2026-11-09",
+    "dateKey": "2026-11-09",
+    "dayLabelTr": "Pzt",
+    "moodCodes": ["mutlu", "sakin"],
+    "averageScore": 5,
+    "reflectionNote": "Sabah nefes egzersizi çok iyi geldi.",
+    "loggedAt": "2026-11-09T09:30:00.000"
+  }
+]
+```
+
+### 2.4 Kullanıcı Profili, Oturum Geçmişi ve Senkronizasyon Kuyruğu (`UserProfileModel`, `SessionHistoryEntry`, `SyncOutboxItem`)
 
 ```dart
 class UserProfileModel {
-  const UserProfileModel({
-    required this.uid,
-    required this.displayName,
-    this.email,
-    this.ageYears,
-    this.weightKg,
-    this.mindfulTitle = 'Mindful Gezgin',
-    this.level = 1,
-    this.preferredSleepTimerMinutes = 30,
-    required this.updatedAt,
-    this.syncStatus = SyncStatus.pendingUpsert,
-  });
-
   final String uid;
   final String displayName;
   final String? email;
-  final int? ageYears;                 // Örn: 28 yıl
-  final double? weightKg;              // Örn: 74 kg
-  final String mindfulTitle;           // Örn: "Mindful Gezgin"
-  final int level;                     // Örn: Seviye 3
-  final int preferredSleepTimerMinutes;
-  final DateTime updatedAt;
-  final SyncStatus syncStatus;
+  final String levelTitleTr;         // 'Seviye 3 • Mindful Gezgin'
+  final int ageYears;                // 28
+  final int weightKg;                // 74
+  final List<String> habitsTr;       // ['Günlük 15 dk meditasyon', '23:00 uyku hazırlığı']
+  final String dailyReminderTime;    // '21:30'
+  final bool notificationsEnabled;
 }
 
-class HabitRoutineModel {
-  const HabitRoutineModel({
-    required this.id,
-    required this.userId,
-    required this.title,
-    required this.iconKey,
-    this.targetMinutesPerDay = 15,
-    this.isActive = true,
-    this.syncStatus = SyncStatus.pendingUpsert,
-  });
-
+class SessionHistoryEntry {
   final String id;
-  final String userId;
-  final String title;                  // Örn: "Günlük 15 dk meditasyon"
-  final String iconKey;                // 'self_improvement' | 'nights_stay' | 'air'
-  final int targetMinutesPerDay;
-  final bool isActive;
-  final SyncStatus syncStatus;
-}
-```
-
-### 2.3 Duygu Durumu & Haftalık Grafik (`ana_sayfa_duygu_durumu`, `profil_ve_duygu_analizi`)
-
-```dart
-class MoodPreset {
-  const MoodPreset({
-    required this.id,
-    required this.emoji,
-    required this.label,
-    required this.defaultScore,
-    required this.chipColorHex,
-    required this.textColorHex,
-  });
-
-  final String id;
-  final String emoji;                  // '☀️', '🌿', '🕊️', '🌪️', '🌙', '🔥', '🌧️'
-  final String label;                  // 'Mutlu', 'Dingin', 'Huzurlu', 'Kaygılı', 'Yorgun', 'Kızgın', 'Üzgün'
-  final double defaultScore;           // 0.0 - 10.0 aralığında grafik karşılığı
-  final int chipColorHex;
-  final int textColorHex;
+  final SessionCategory category;
+  final String itemId;
+  final String titleTr;
+  final int completedSeconds;
+  final DateTime completedAt;
+  final bool isSynced;
 }
 
-class DailyMoodLogModel {
-  const DailyMoodLogModel({
-    required this.id,                  // '${userId}_$dateKey'
-    required this.userId,
-    required this.dateKey,             // 'yyyy-MM-dd' (Örn: '2024-10-12')
-    required this.selectedMoodIds,     // En fazla önerilen 3 aktif etiket
-    this.note = '',
-    required this.computedScore,       // 4.8 .. 9.4 (haftalık spline grafiği noktası)
-    required this.updatedAt,
-    this.syncStatus = SyncStatus.pendingUpsert,
-  });
-
-  final String id;
-  final String userId;
-  final String dateKey;
-  final List<String> selectedMoodIds;
-  final String note;
-  final double computedScore;
-  final DateTime updatedAt;
-  final SyncStatus syncStatus;
-}
-```
-
-### 2.4 Medya Kataloğu, Bulut Depolama & Yerel Önbellek Modeli
-
-```dart
-class StorageObjectLocation {
-  const StorageObjectLocation({
-    required this.provider,
-    required this.bucket,
-    required this.objectPath,
-  });
-
-  final StorageProvider provider;      // supabaseStorage | bundledAsset
-  final String bucket;                 // Supabase: 'meditation-audio' | 'meditation-visuals' (bundled'da '')
-  final String objectPath;             // Örn: 'nature/5dk_sakin_yagmur.mp3'
-}
-
-class MediaTrackModel {
-  const MediaTrackModel({
-    required this.id,
-    required this.category,
-    required this.title,
-    required this.subtitle,
-    required this.durationMs,
-    required this.primarySource,
-    this.fallbackBundledAsset,
-    this.backdropAssetOrPath,
-    this.motionLoopSource,
-    required this.accentColorHex,
-    required this.sizeBytes,
-    this.sha256,
-    this.catalogVersion = 1,
-  });
-
-  final String id;
-  final MediaCategory category;
-  final String title;
-  final String subtitle;
-  final int durationMs;
-  final StorageObjectLocation primarySource;
-  final String? fallbackBundledAsset;  // Çevrimdışı ilk açılış / acil durum hafif yerel asset yolu
-  final String? backdropAssetOrPath;   // Küçük önizleme görseli veya arka plan görseli
-  final StorageObjectLocation? motionLoopSource; // Opsiyonel hafif (<1 MB) arka plan döngüsü
-  final int accentColorHex;
-  final int sizeBytes;
-  final String? sha256;
-  final int catalogVersion;
-}
-
-class CachedMediaModel {
-  const CachedMediaModel({
-    required this.mediaId,
-    required this.localRelativePath,   // Native (macOS/iOS/Android) alt yolu; Web'de boş string
-    required this.cachedBytes,
-    this.etag,
-    required this.lastAccessedAt,
-    this.isPinnedOffline = false,
-  });
-
-  final String mediaId;
-  final String localRelativePath;
-  final int cachedBytes;
-  final String? etag;
-  final DateTime lastAccessedAt;
-  final bool isPinnedOffline;
-}
-```
-
-### 2.5 Nefes, Yoga & Uyku Hikayesi Modelleri
-
-```dart
-class BreathCadenceModel {
-  const BreathCadenceModel({
-    required this.id,                  // '4-1-4' | '4-7-8'
-    required this.title,
-    required this.inhaleSeconds,
-    required this.holdSeconds,
-    required this.exhaleSeconds,
-    this.linkedMediaId,
-  });
-
-  final String id;
-  final String title;
-  final int inhaleSeconds;
-  final int holdSeconds;
-  final int exhaleSeconds;
-  final String? linkedMediaId;
-}
-
-class BodyPoseModel {
-  const BodyPoseModel({
-    required this.id,
-    required this.orderIndex,          // 1..8
-    required this.sanskritName,
-    required this.turkishName,
-    required this.imageAsset,          // Örn: 'assets/images/yoga/pozisyon_1.png'
-    this.defaultDurationSeconds = 60,
-    required this.steps,               // 3 adımlı yönlendirme
-  });
-
-  final String id;
-  final int orderIndex;
-  final String sanskritName;
-  final String turkishName;
-  final String imageAsset;
-  final int defaultDurationSeconds;
-  final List<String> steps;
-}
-
-class SleepStoryModel {
-  const SleepStoryModel({
-    required this.id,                  // 'hikaye_1' | 'hikaye_2'
-    required this.title,
-    required this.mediaTrackId,
-    required this.backdropPath,
-    required this.storyTextAsset,
-    required this.estimatedMinutes,
-  });
-
-  final String id;
-  final String title;
-  final String mediaTrackId;
-  final String backdropPath;
-  final String storyTextAsset;
-  final int estimatedMinutes;
-}
-```
-
-### 2.6 Bildirim & Giden Kutusu Modelleri
-
-```dart
-class ReminderScheduleModel {
-  const ReminderScheduleModel({
-    required this.id,
-    required this.userId,
-    required this.channel,             // 'daily_mood' | 'sleep_winddown' | 'breath_break'
-    required this.title,
-    required this.body,
-    required this.hour,                // 0..23
-    required this.minute,              // 0..59
-    this.weekdaysBitmask = 127,        // 7 gün bitmask (Pzt=1 .. Paz=64)
-    this.isEnabled = true,
-    this.deepLinkRoute = '/home',
-  });
-
-  final String id;
-  final String userId;
-  final String channel;
-  final String title;
-  final String body;
-  final int hour;
-  final int minute;
-  final int weekdaysBitmask;
-  final bool isEnabled;
-  final String deepLinkRoute;
-}
-
-class PushNotificationEnvelope {
-  const PushNotificationEnvelope({
-    required this.messageId,
-    required this.title,
-    required this.body,
-    required this.route,
-    this.mediaId,
-    required this.receivedAt,
-  });
-
-  final String messageId;
-  final String title;
-  final String body;
-  final String route;                  // Örn: '/meditation/sleep/stories'
-  final String? mediaId;               // Örn: 'hikaye_1'
-  final DateTime receivedAt;
+class SyncOutboxItem {
+  final int id;
+  final String entityType;           // 'profile' | 'mood' | 'mood_chart' | 'last_played' | 'session' | 'favorite'
+  final String entityId;
+  final String operation;            // 'UPSERT' | 'DELETE'
+  final Map<String, dynamic> payload;
+  final DateTime createdAt;
 }
 ```
 
 ---
 
-## 3. Veritabanı ve Depolama Katmanı Şemaları
+## 3. Veritabanı, Yerel Depolama ve Firestore Senkronizasyon Mimarisi
 
-### 3.1 Yerel SQLite / WASM Şeması (`Drift` — Önerilen Ana Yerel Veritabanı)
+### 3.1 Açılışta Yerel-Öncelikli + Firestore İlişkisel Koleksiyon Yedekli Veri Akışı (`LocalStore` -> `CloudSyncService`)
 
-| Tablo Adı | Birincil Anahtar | İndekslenen Sütunlar | Kullanım Amacı |
-| :--- | :--- | :--- | :--- |
-| `user_profiles` | `uid` | `updated_at` | Kullanıcı yaş, kilo, unvan ve seviye bilgisi |
-| `habit_routines` | `id` | `user_id`, `is_active` | Profil ekranındaki günlük alışkanlık çipleri |
-| `mood_logs` | `id` | `(user_id, date_key) UNIQUE`, `sync_status` | Takvim günleri ve haftalık spline duygu grafiği sorguları |
-| `media_catalog` | `id` | `category`, `catalog_version` | Uzak/yerel seslerin sürüm, boyut ve URL çözümleme kataloğu |
-| `cached_media` | `media_id` | `last_accessed_at`, `is_pinned_offline` | Native (macOS/mobil) indirilen seslerin LRU önbellek indeksi |
-| `reminder_schedules` | `id` | `user_id`, `is_enabled` | `flutter_local_notifications` için tekrarlayan hatırlatıcılar |
-| `sync_outbox` | `id (AUTOINCREMENT)` | `created_at`, `entity_type` | Çevrimdışı değişikliklerin bağlantı geldiğinde sırayla buluta aktarımı |
+Uygulama açıldığında (`main.dart`):
+1. **Önce Yerel Depo (`LocalStore.initialize()`) Okunur:**
+   - `SharedPreferences` ve `Drift` (`MediTransDriftDb`) tablolarından kullanıcının en son dinlediği içerik (`_lastPlayedTrack`), haftalık alışkanlıkları (`weekly_habits`) ve duygu grafiği verileri (`_moodsByDate`) yüklenir.
+   - Yerelde kayıtlı veri varsa (`hasLocalLastPlayedData == true` ve `hasLocalMoodData == true`), uygulama beklemeden doğrudan yerel verileri kullanır.
+2. **Yerelde Veri Yoksa (veya Eksikse) Gerçekten Firestore İlişkisel Koleksiyonlarından Çekilir (`CloudSyncService.pullFromFirestoreIfNeeded()`):**
+   - `userId` (`targetUid`) anahtarıyla şu **üst düzey koleksiyonlara** 5 saniye zaman aşımı (`timeout`) ile gerçek sorgu atılır:
+     - `users/{userId}`
+     - `weekly_habits/{userId}`
+     - `last_played_tracks/{userId}`
+     - `mood_charts/{userId}`
+     - `mood_logs` (`where('userId', isEqualTo: userId)`)
+     - `user_favorites` (`where('userId', isEqualTo: userId)`)
+   - Gelen veriler `LocalStore.hydrateFromFirestore(...)` ile yerel depoya (`SharedPreferences` + `Drift`) aktarılır ve ses oynatıcısı (`GlobalAudioController`) otomatik olarak son dinlenen parçaya senkronize olur.
+3. **Çevrimdışı / Hata Dayanıklılığı (Graceful Fallback):**
+   - İnternet bağlantısı yoksa, Firestore kuralları henüz kapalıysa veya sorgu zaman aşımına uğrarsa `try / catch` bloğu hatayı güvenli şekilde yakalar.
+   - **Uygulama kesinlikle çökmez veya kilitlenmez**; halihazırda yerelden yüklenmiş olan verilerle kesintisiz çalışmaya devam eder ve yazılmayı bekleyen kayıtları `outbox` kuyruğunda tutar.
 
-### 3.2 Hafif Anahtar-Değer Katmanı (`hive_ce` / `shared_preferences`)
+### 3.2 Yerel SQLite Şeması (`Drift` — `MediTransDriftDb` / `meditrans_local_db`)
 
-Aşağıdaki geçici/hafif UI durumları için SQL sorgusu gerekmez; doğrudan `app_runtime_prefs` kutusunda saklanır:
-- `last_media_id`: `'hz_432'` (`Ana Sayfa -> Frekansa devam et` kartı için)
-- `last_position_ms`: `258000` (kalınan saniyeden devam)
-- `last_sleep_nature_id`: `'nature_rain'` | `'nature_ocean'`
-- `last_sleep_noise_id`: `'noise_white'` | `'noise_brown'`
-- `web_soft_cache_index`: Windows Chrome / `web-server` üzerinde son görüntülenen katalog JSON meta verisi
+| Tablo Adı | Birincil Anahtar | Yabancı Anahtar (`FK`) | Sütunlar | Kullanım Amacı |
+| :--- | :--- | :--- | :--- | :--- |
+| `user_profile` | `uid` | — | `display_name`, `email`, `level_title_tr`, `age_years`, `weight_kg`, `habits_json`, `daily_reminder_time`, `notifications_enabled` | Kullanıcı ana profil tablosu |
+| `weekly_habits` | `id` | `user_id -> user_profile.uid` | `user_id`, `habits_json`, `daily_reminder_time`, `notifications_enabled`, `updated_at` | Kullanıcının haftalık/günlük alışkanlıkları |
+| `last_played_track` | `id` | `user_id -> user_profile.uid` | `user_id`, `category`, `title_tr`, `subtitle_tr`, `metadata_json`, `last_position_seconds`, `updated_at` | En son dinlenen içeriğin kategorisi, ismi ve tüm metadata bilgileri |
+| `mood_logs` | `id` | `user_id (JSON)` | `date_key`, `logged_at`, `mood_codes_json`, `average_score`, `reflection_note`, `is_synced` | Günlük duygu etiketleri, yansıma notları ve 7 günlük duygu grafiği verileri |
+| `session_history` | `id` | `user_id (JSON)` | `category`, `item_id`, `title_tr`, `completed_seconds`, `completed_at`, `is_synced` | Tamamlanan meditasyon, nefes ve uyku oturumları |
+| `sync_outbox` | `id (AUTOINCREMENT)` | — | `entity_type`, `entity_id`, `operation`, `payload_json`, `created_at` | Çevrimdışı yapılan değişikliklerin ilgili Firestore koleksiyonuna iletilmesi için kuyruk |
+| `cached_media` | `media_id` | — | `bucket_name`, `remote_path`, `local_file_path`, `byte_size`, `last_accessed_at` | Supabase Storage'dan indirilen ses dosyalarının yerel disk önbelleği |
 
-### 3.3 Bulut Şeması — Firebase Spark Ücretsiz Plan (`meditrans-2ff48`)
+### 3.3 Hafif Anahtar-Değer Katmanı (`SharedPreferences`)
 
-> **Plan Sınırı (Blaze Yok):** Cloud Storage for Firebase, Cloud Functions ve Phone/SMS Auth Spark planında kullanılmaz (`firebase_storage` paketi projeye eklenmeyecektir).
+- `aura.last_played_track_meta.v1`: En son dinlenen içeriğin tam JSON objesi (`userId`, `category`, `categoryLabelTr`, `title`, `subtitle`, `metadata`).
+- `aura.last_freq_id.v1`: En son dinlenen parçanın `id` değeri (`hz_432`, `nature_rain`, vb.).
+- `aura.mood_logs.v1`: Günlük duygu kayıtları ve haftalık duygu grafiği JSON listesi.
+- `aura.user_profile.v1`: Kullanıcı profili ve haftalık alışkanlıklar JSON verisi.
+- `aura.favorites.v1`: Favorilere eklenen içerik kimlikleri listesi.
+- `aura.sync_outbox.v1`: Bekleyen Firestore senkronizasyon kuyruğu.
 
-#### Firestore Koleksiyon Hiyerarşisi *(Spark ücretsiz kota: 1 GiB veri, 50K okuma/gün, 20K yazma/gün)*
+### 3.4 Bulut Şeması — Firebase Spark Ücretsiz Plan (`meditrans-2ff48`) İlişkisel Koleksiyon Mimarisi
+
+> **Tasarım Prensibi:** Tüm veriler tek bir `users` belgesinin içine gömülmek yerine, sorumluluklarına göre **7 ayrı üst düzey (top-level) koleksiyona** ayrılmıştır. Her koleksiyondaki her belgede **`userId`** (ve okunabilirlik için `userEmail`) alanı bulunur; böylece herhangi bir koleksiyondaki kayıttan doğrudan hangi kullanıcıya (`users/{userId}`) ait olduğuna gidilebilir.
+
+#### Üst Düzey (Top-Level) Firestore Koleksiyonları ve Bağlantıları
 ```text
-users/{uid}
-  ├── profile (displayName, ageYears, weightKg, mindfulTitle, level, updatedAt)
-  ├── mood_logs/{yyyy-MM-dd} (selectedMoodIds, note, computedScore, updatedAt)
-  ├── habits/{habitId} (title, iconKey, targetMinutesPerDay, isActive)
-  ├── reminders/{reminderId} (channel, hour, minute, weekdaysBitmask, isEnabled, deepLinkRoute)
-  └── push_tokens/{tokenHash} (token, platform, updatedAt)
+1. users/{userId}
+   ├── uid: string (PK)
+   ├── userId: string (PK)
+   ├── email: string
+   ├── displayName: string
+   ├── levelTitleTr: string
+   ├── ageYears: int
+   ├── weightKg: double
+   ├── dailyReminderTime: string
+   ├── notificationsEnabled: bool
+   └── updatedAt: ISO-8601 string
+
+2. weekly_habits/{userId}                 [FK: userId -> users/{userId}]
+   ├── id: "habits_{userId}"
+   ├── userId: string (FK)
+   ├── userEmail: string
+   ├── displayName: string
+   ├── habitsTr: string[]                 (Örn: ["Sabah Nefesi", "Su Tüketimi", "Gece Okuması"])
+   ├── habitItems: [
+   │     {
+   │       id: "{userId}_habit_1",
+   │       userId: string (FK),
+   │       orderIndex: int,
+   │       title: string,
+   │       dailyReminderTime: string,
+   │       isActive: bool
+   │     }
+   │   ]
+   ├── dailyReminderTime: string
+   ├── notificationsEnabled: bool
+   └── updatedAt: ISO-8601 string
+
+3. last_played_tracks/{userId}            [FK: userId -> users/{userId}]
+   ├── id: "last_played_{userId}"
+   ├── userId: string (FK)
+   ├── userEmail: string
+   ├── trackId: string                    (Örn: "hz_432", "nature_rain", "story_1")
+   ├── title: string                      (Örn: "432 Hz • Evrensel Uyum")
+   ├── subtitle: string
+   ├── category: "frequency" | "natureSound" | "noiseSound" | "sleepStory" | "breathwork" | "yogaPose"
+   ├── categoryLabelTr: string            (Örn: "Hz Frekansı", "Doğa Sesi")
+   ├── lastPositionSeconds: int
+   ├── updatedAt: ISO-8601 string
+   └── metadata: {
+         id: string,
+         userId: string (FK),
+         title: string,
+         subtitle: string,
+         category: string,
+         categoryLabelTr: string,
+         localAudioAsset: string,
+         remoteStoragePath: string,
+         backgroundAsset: string,
+         durationSeconds: int,
+         lastPositionSeconds: int,
+         frequencyHz: double?,
+         updatedAt: ISO-8601 string
+       }
+
+4. mood_charts/{userId}                   [FK: userId -> users/{userId}]
+   ├── id: "chart_{userId}"
+   ├── userId: string (FK)
+   ├── userEmail: string
+   ├── updatedAt: ISO-8601 string
+   └── weeklyMoodChart: [                 (Pzt..Paz 7 günlük duygu grafiği)
+         {
+           id: "{userId}_{dateKey}",
+           userId: string (FK),
+           dateKey: "yyyy-MM-dd",
+           dayLabelTr: "Pzt" | "Sal" | "Çar" | "Per" | "Cum" | "Cmt" | "Paz",
+           moodCodes: string[],
+           averageScore: int (1..5),
+           reflectionNote: string?,
+           loggedAt: ISO-8601 string
+         }
+       ]
+
+5. mood_logs/{userId}_{dateKey}           [FK: userId -> users/{userId}]
+   ├── id: "{userId}_{dateKey}"
+   ├── userId: string (FK)
+   ├── userEmail: string
+   ├── dateKey: "yyyy-MM-dd"
+   ├── moodCodes: string[]                (Örn: ["mutlu", "huzurlu"])
+   ├── averageScore: int (1..5)
+   ├── reflectionNote: string?            (Örn: "Bugün deliyem Huzurum Bozulmuşke")
+   └── loggedAt: ISO-8601 string
+
+6. session_history/{userId}_{sessionId}   [FK: userId -> users/{userId}]
+   ├── id: "{userId}_{sessionId}"
+   ├── userId: string (FK)
+   ├── userEmail: string
+   ├── category: string
+   ├── categoryLabelTr: string
+   ├── itemId: string
+   ├── titleTr: string
+   ├── completedSeconds: int
+   └── completedAt: ISO-8601 string
+
+7. user_favorites/{userId}_{itemId}       [FK: userId -> users/{userId}]
+   ├── id: "{userId}_{itemId}"
+   ├── userId: string (FK)
+   ├── userEmail: string
+   ├── itemId: string
+   └── updatedAt: ISO-8601 string
 ```
 
 > Not: Kullanıcı profil dışa aktarımları Firestore üzerinden JSON veya yerelden paylaşılabilir; ikili medya yüklemesi yalnızca Supabase Storage'da yapılır.

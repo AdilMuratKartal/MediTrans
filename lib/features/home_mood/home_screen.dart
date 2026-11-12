@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../core/audio/universal_player_bar.dart';
+import '../../core/data/models/session_category_model.dart';
 import '../../core/data/seed_catalog.dart';
 import '../../core/di/app_scope.dart';
 import '../../core/theme/aura_theme.dart';
+import '../body_exercises/body_exercises_screen.dart';
+import '../breathwork/breathwork_screen.dart';
 import '../frequencies/frequency_player_screen.dart';
+import '../sleep/nature_sounds_screen.dart';
+import '../sleep/noise_player_screen.dart';
+import '../sleep/sleep_stories_screen.dart';
 
 /// Home Mood Sanctuary (`ana_sayfa_duygu_durumu`)
 /// Strictly aligned with Stitch design: NO mascot, weekly calendar strip (`P S Ç P C C P`),
@@ -26,6 +32,58 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
   void dispose() {
     _noteController.dispose();
     super.dispose();
+  }
+
+  void _openFullPlayerForCurrentTrack(BuildContext context, AppScope scope) {
+    final track = scope.audio.currentTrack;
+    switch (track.category) {
+      case SessionCategory.frequency:
+        final activeIdx = SeedCatalog.frequencies.indexWhere((f) => f.id == track.id);
+        final fallbackIdx = SeedCatalog.frequencies.indexWhere((f) => f.id == 'hz_432');
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => FrequencyPlayerScreen(
+              initialIndex: activeIdx < 0 ? (fallbackIdx < 0 ? 0 : fallbackIdx) : activeIdx,
+              startFullScreenResonance: true,
+            ),
+          ),
+        );
+        break;
+      case SessionCategory.natureSound:
+        final activeIdx = SeedCatalog.natureTracks.indexWhere((n) => n.id == track.id);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => NatureSoundsScreen(initialIndex: activeIdx < 0 ? 0 : activeIdx),
+          ),
+        );
+        break;
+      case SessionCategory.noiseSound:
+        final activeIdx = SeedCatalog.noiseTracks.indexWhere((n) => n.id == track.id);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => NoisePlayerScreen(initialIndex: activeIdx < 0 ? 0 : activeIdx),
+          ),
+        );
+        break;
+      case SessionCategory.sleepStory:
+        final activeIdx = SeedCatalog.storyTracks.indexWhere((s) => s.id == track.id);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => SleepStoriesScreen(initialStoryIndex: activeIdx < 0 ? 0 : activeIdx),
+          ),
+        );
+        break;
+      case SessionCategory.breathwork:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const BreathworkScreen()),
+        );
+        break;
+      case SessionCategory.yogaPose:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const BodyExercisesScreen()),
+        );
+        break;
+    }
   }
 
   void _openAddMoodBottomSheet(BuildContext context, AppScope scope) {
@@ -593,13 +651,13 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // `Frekansa devam et` Section Header + Universal Player Card
+                // Dynamic Section Header + Universal Player Card
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'FREKANSA DEVAM ET',
-                      style: TextStyle(
+                    Text(
+                      scope.audio.currentTrack.category.continueHeaderLabelTr,
+                      style: const TextStyle(
                         fontFamily: 'Segoe UI',
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -608,23 +666,7 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                       ),
                     ),
                     TextButton.icon(
-                      onPressed: () {
-                        final activeIdx = SeedCatalog.frequencies.indexWhere(
-                          (f) => f.id == scope.audio.currentTrack.id,
-                        );
-                        final fallbackIdx = SeedCatalog.frequencies.indexWhere(
-                          (f) => f.id == 'hz_432',
-                        );
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => FrequencyPlayerScreen(
-                              initialIndex: activeIdx < 0
-                                  ? (fallbackIdx < 0 ? 0 : fallbackIdx)
-                                  : activeIdx,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: () => _openFullPlayerForCurrentTrack(context, scope),
                       icon: const Icon(Icons.open_in_new_rounded, size: 16),
                       label: const Text('Tam Oynatıcı'),
                     ),
@@ -633,24 +675,7 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                 UniversalPlayerBar(
                   audio: scope.audio,
                   localStore: scope.localStore,
-                  onOpenFullScreen: () {
-                    final activeIdx = SeedCatalog.frequencies.indexWhere(
-                      (f) => f.id == scope.audio.currentTrack.id,
-                    );
-                    final fallbackIdx = SeedCatalog.frequencies.indexWhere(
-                      (f) => f.id == 'hz_432',
-                    );
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => FrequencyPlayerScreen(
-                          initialIndex: activeIdx < 0
-                              ? (fallbackIdx < 0 ? 0 : fallbackIdx)
-                              : activeIdx,
-                          startFullScreenResonance: true,
-                        ),
-                      ),
-                    );
-                  },
+                  onOpenFullScreen: () => _openFullPlayerForCurrentTrack(context, scope),
                 ),
               ],
             ),
