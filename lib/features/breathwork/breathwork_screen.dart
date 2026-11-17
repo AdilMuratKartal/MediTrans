@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/audio/global_audio_controller.dart';
 import '../../core/data/models/breath_cadence_model.dart';
@@ -151,7 +152,8 @@ class _BreathworkScreenState extends State<BreathworkScreen> {
     return Scaffold(
       body: AuraBackground(
         imageAsset: _selectedCadence.backgroundAsset,
-        overlayOpacity: 0.80,
+        overlayOpacity: 0.1,
+        backgroundBlur: 0,
         child: SafeArea(
           child: Column(
             children: [
@@ -212,11 +214,15 @@ class _BreathworkScreenState extends State<BreathworkScreen> {
                             ChoiceChip(
                               label: Text(cadence.titleTr),
                               selected: _selectedCadence.id == cadence.id,
-                              selectedColor: AuraColors.primaryFixed,
-                              backgroundColor: Colors.white.withValues(
-                                alpha: 0.75,
+                              selectedColor: AuraColors.primaryFixed.withValues(
+                                alpha: 0.72,
                               ),
-                              side: BorderSide.none,
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.38,
+                              ),
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.68),
+                              ),
                               labelStyle: TextStyle(
                                 fontFamily: 'Segoe UI',
                                 fontWeight: _selectedCadence.id == cadence.id
@@ -245,7 +251,7 @@ class _BreathworkScreenState extends State<BreathworkScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      // Animated Breathing Orb
+                      // Animated Glassmorphic Breathing Orb
                       SizedBox(
                         height: 270,
                         child: Center(
@@ -255,64 +261,78 @@ class _BreathworkScreenState extends State<BreathworkScreen> {
                               milliseconds: _isSessionActive ? 1400 : 500,
                             ),
                             curve: Curves.easeInOutCubic,
-                            child: Container(
-                              width: 220,
-                              height: 220,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.95),
-                                    AuraColors.primaryFixed.withValues(
-                                      alpha: 0.88,
-                                    ),
-                                    AuraColors.primaryContainer.withValues(
-                                      alpha: 0.55,
-                                    ),
-                                  ],
+                            child: ClipOval(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 10,
+                                  sigmaY: 10,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AuraColors.primary.withValues(
-                                      alpha: 0.24,
+                                child: Container(
+                                  width: 220,
+                                  height: 220,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.78,
+                                      ),
+                                      width: 1.5,
                                     ),
-                                    blurRadius: 48,
-                                    spreadRadius: 12,
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _phaseLabel.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontFamily: 'Segoe UI',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 2.0,
-                                      color: AuraColors.primary,
+                                    gradient: RadialGradient(
+                                      colors: [
+                                        Colors.white.withValues(alpha: 0.58),
+                                        AuraColors.primaryFixed.withValues(
+                                          alpha: 0.44,
+                                        ),
+                                        AuraColors.primaryContainer.withValues(
+                                          alpha: 0.28,
+                                        ),
+                                      ],
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AuraColors.primary.withValues(
+                                          alpha: 0.22,
+                                        ),
+                                        blurRadius: 42,
+                                        spreadRadius: 8,
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    '$_phaseRemainingSeconds',
-                                    style: const TextStyle(
-                                      fontSize: 54,
-                                      fontWeight: FontWeight.w400,
-                                      color: AuraColors.onSurface,
-                                    ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        _phaseLabel.toUpperCase(),
+                                        style: const TextStyle(
+                                          fontFamily: 'Segoe UI',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 2.0,
+                                          color: AuraColors.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '$_phaseRemainingSeconds',
+                                        style: const TextStyle(
+                                          fontSize: 54,
+                                          fontWeight: FontWeight.w400,
+                                          color: AuraColors.onSurface,
+                                        ),
+                                      ),
+                                      Text(
+                                        'saniye',
+                                        style: TextStyle(
+                                          fontFamily: 'Segoe UI',
+                                          fontSize: 12,
+                                          color: AuraColors.onSurfaceVariant
+                                              .withValues(alpha: 0.8),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    'saniye',
-                                    style: TextStyle(
-                                      fontFamily: 'Segoe UI',
-                                      fontSize: 12,
-                                      color: AuraColors.onSurfaceVariant
-                                          .withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -335,9 +355,11 @@ class _BreathworkScreenState extends State<BreathworkScreen> {
                                 selected: _selectedMinutes == mins,
                                 selectedColor: AuraColors.primary,
                                 backgroundColor: Colors.white.withValues(
-                                  alpha: 0.72,
+                                  alpha: 0.38,
                                 ),
-                                side: BorderSide.none,
+                                side: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.68),
+                                ),
                                 labelStyle: TextStyle(
                                   fontFamily: 'Segoe UI',
                                   fontWeight: FontWeight.w600,

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/data/seed_catalog.dart';
 import '../../core/di/app_scope.dart';
@@ -26,12 +27,9 @@ class _MeditationPortalScreenState extends State<MeditationPortalScreen> {
   void _showQuickRecommendationSheet(BuildContext context, AppScope scope) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AuraColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Padding(
+        return AuraGlassSheet(
           padding: const EdgeInsets.fromLTRB(24, 18, 24, 30),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -197,7 +195,8 @@ class _MeditationPortalScreenState extends State<MeditationPortalScreen> {
 
     return AuraBackground(
       imageAsset: 'assets/images/backgrounds/meditation_portal_bg.jpg',
-      overlayOpacity: 0.80,
+      overlayOpacity: 0.30,
+      backgroundBlur: 4.5,
       child: SafeArea(
         bottom: false,
         child: ListView(
@@ -295,8 +294,10 @@ class _MeditationPortalScreenState extends State<MeditationPortalScreen> {
                         label: Text(f),
                         selected: _selectedFilter == f,
                         selectedColor: AuraColors.primary,
-                        backgroundColor: Colors.white.withValues(alpha: 0.72),
-                        side: BorderSide.none,
+                        backgroundColor: Colors.white.withValues(alpha: 0.38),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.68),
+                        ),
                         labelStyle: TextStyle(
                           fontFamily: 'Segoe UI',
                           fontSize: 13,
@@ -481,15 +482,23 @@ class _PortalCategoryTile extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Image.asset(spec.imageAsset, fit: BoxFit.cover),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    spec.accentColor.withValues(alpha: 0.35),
-                    const Color(0xFF1A1829).withValues(alpha: 0.82),
-                  ],
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.55),
+                    width: 1.2,
+                  ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      spec.accentColor.withValues(alpha: 0.28),
+                      const Color(0xFF1A1829).withValues(alpha: 0.68),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -502,34 +511,55 @@ class _PortalCategoryTile extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                        child: Text(
-                          spec.badge,
-                          style: const TextStyle(
-                            fontFamily: 'Segoe UI',
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.0,
-                            color: Colors.white,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.24),
+                              borderRadius: BorderRadius.circular(99),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.45),
+                              ),
+                            ),
+                            child: Text(
+                              spec.badge,
+                              style: const TextStyle(
+                                fontFamily: 'Segoe UI',
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.0,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.20),
+                      ClipOval(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.22),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.45),
+                              ),
+                            ),
+                            child: Icon(
+                              spec.icon,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
                         ),
-                        child: Icon(spec.icon, color: Colors.white, size: 18),
                       ),
                     ],
                   ),
@@ -551,7 +581,7 @@ class _PortalCategoryTile extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'Segoe UI',
                           fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: Colors.white.withValues(alpha: 0.88),
                         ),
                       ),
                     ],

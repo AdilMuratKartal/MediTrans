@@ -52,6 +52,62 @@ class AuraTheme {
         onSurface: AuraColors.onSurface,
       ),
       fontFamily: 'Georgia',
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.white.withValues(alpha: 0.78),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.75),
+            width: 1.2,
+          ),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: Colors.transparent,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.38),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: Colors.white.withValues(alpha: 0.68),
+            width: 1.2,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(
+            color: Colors.white.withValues(alpha: 0.68),
+            width: 1.2,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(
+            color: AuraColors.primary,
+            width: 1.5,
+          ),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: Colors.white.withValues(alpha: 0.36),
+        selectedColor: AuraColors.primary.withValues(alpha: 0.85),
+        side: BorderSide(
+          color: Colors.white.withValues(alpha: 0.62),
+          width: 1.0,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+        ),
+      ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontSize: 36,
@@ -94,13 +150,15 @@ class AuraTheme {
   }
 }
 
-/// Renders an Ethereal Aura Mind layered background with optional image asset,
-/// ambient pastel blur orbs, and dark sanctuary overlay.
+/// Renders an Ethereal Aura Mind layered glassmorphic background with optional image asset,
+/// subtle uniform background blur (so no screen lacks blur, while keeping blur low/clear),
+/// ambient pastel glow orbs, and translucent sanctuary overlay.
 class AuraBackground extends StatelessWidget {
   final String? imageAsset;
   final bool isNightMode;
   final Color? tintColor;
   final double overlayOpacity;
+  final double backgroundBlur;
   final Widget child;
 
   const AuraBackground({
@@ -108,13 +166,19 @@ class AuraBackground extends StatelessWidget {
     this.imageAsset,
     this.isNightMode = false,
     this.tintColor,
-    this.overlayOpacity = 0.76,
+    this.overlayOpacity = 0.32,
+    this.backgroundBlur = 4.5,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
     final baseColor = isNightMode ? AuraColors.nightBg : AuraColors.surface;
+    // Normalize any legacy high overlay opacities so backgrounds remain vivid for glassmorphism
+    final effectiveOverlay = overlayOpacity > 0.50
+        ? (overlayOpacity * 0.44).clamp(0.24, 0.42)
+        : overlayOpacity.clamp(0.18, 0.48);
+
     return Container(
       color: baseColor,
       child: Stack(
@@ -127,46 +191,23 @@ class AuraBackground extends StatelessWidget {
               errorBuilder: (context, error, stackTrace) =>
                   Container(color: baseColor),
             ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: isNightMode
-                    ? [
-                        AuraColors.nightBg.withValues(alpha: overlayOpacity),
-                        const Color(
-                          0xFF141829,
-                        ).withValues(alpha: overlayOpacity + 0.08),
-                        AuraColors.nightBg.withValues(alpha: 0.94),
-                      ]
-                    : [
-                        AuraColors.surface.withValues(alpha: overlayOpacity),
-                        (tintColor ?? const Color(0xFFF3EEFF)).withValues(
-                          alpha: overlayOpacity - 0.06,
-                        ),
-                        AuraColors.surface.withValues(alpha: 0.92),
-                      ],
-              ),
-            ),
-          ),
-          // Soft ambient aura glow orbs
+          // Soft ambient aura glow orbs behind the background blur
           Positioned(
-            top: -80,
-            left: -50,
+            top: -70,
+            left: -40,
             child: IgnorePointer(
               child: Container(
-                width: 280,
-                height: 280,
+                width: 300,
+                height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
                       (tintColor ??
                               (isNightMode
-                                  ? const Color(0xFF493D78)
+                                  ? const Color(0xFF5A4B96)
                                   : AuraColors.primaryFixed))
-                          .withValues(alpha: isNightMode ? 0.28 : 0.42),
+                          .withValues(alpha: isNightMode ? 0.36 : 0.48),
                       Colors.transparent,
                     ],
                   ),
@@ -175,22 +216,62 @@ class AuraBackground extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: -90,
-            right: -50,
+            bottom: -80,
+            right: -40,
             child: IgnorePointer(
               child: Container(
-                width: 260,
-                height: 260,
+                width: 280,
+                height: 280,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
                       (isNightMode
-                              ? const Color(0xFF283A5E)
+                              ? const Color(0xFF2B4370)
                               : AuraColors.tertiaryFixed)
-                          .withValues(alpha: isNightMode ? 0.26 : 0.35),
+                          .withValues(alpha: isNightMode ? 0.34 : 0.42),
                       Colors.transparent,
                     ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Subtle uniform background blur on every page (reduced sigma so artwork shines through)
+          ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: backgroundBlur,
+                sigmaY: backgroundBlur,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isNightMode
+                        ? [
+                            AuraColors.nightBg.withValues(
+                              alpha: effectiveOverlay,
+                            ),
+                            const Color(0xFF141829).withValues(
+                              alpha: (effectiveOverlay + 0.06).clamp(0.0, 0.58),
+                            ),
+                            AuraColors.nightBg.withValues(
+                              alpha: (effectiveOverlay + 0.16).clamp(0.0, 0.66),
+                            ),
+                          ]
+                        : [
+                            AuraColors.surface.withValues(
+                              alpha: effectiveOverlay,
+                            ),
+                            (tintColor ?? const Color(0xFFF3EEFF)).withValues(
+                              alpha: (effectiveOverlay - 0.04).clamp(0.14, 0.45),
+                            ),
+                            AuraColors.surface.withValues(
+                              alpha: (effectiveOverlay + 0.10).clamp(0.24, 0.52),
+                            ),
+                          ],
                   ),
                 ),
               ),
@@ -203,13 +284,14 @@ class AuraBackground extends StatelessWidget {
   }
 }
 
-/// Borderless frosted glass card following the No-Line Rule (`backdrop-filter: blur`).
+/// True Glassmorphic card with specular gradient, crisp luminous border, and reduced frosted blur.
 class AuraGlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double borderRadius;
   final Color? backgroundColor;
   final bool isNightMode;
+  final double blurSigma;
   final VoidCallback? onTap;
 
   const AuraGlassCard({
@@ -219,38 +301,48 @@ class AuraGlassCard extends StatelessWidget {
     this.borderRadius = 28,
     this.backgroundColor,
     this.isNightMode = false,
+    this.blurSigma = 10.0,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bg =
+    final topLeftColor =
         backgroundColor ??
         (isNightMode
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.white.withValues(alpha: 0.72));
+            ? Colors.white.withValues(alpha: 0.15)
+            : Colors.white.withValues(alpha: 0.46));
+    final bottomRightColor =
+        backgroundColor?.withValues(alpha: 0.28) ??
+        (isNightMode
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.white.withValues(alpha: 0.26));
 
     final content = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: bg,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [topLeftColor, bottomRightColor],
+            ),
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
               color: isNightMode
-                  ? Colors.white.withValues(alpha: 0.10)
-                  : Colors.white.withValues(alpha: 0.65),
-              width: 1,
+                  ? Colors.white.withValues(alpha: 0.22)
+                  : Colors.white.withValues(alpha: 0.72),
+              width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
                 color: (isNightMode ? Colors.black : AuraColors.primary)
-                    .withValues(alpha: isNightMode ? 0.24 : 0.06),
-                blurRadius: 28,
-                offset: const Offset(0, 12),
+                    .withValues(alpha: isNightMode ? 0.28 : 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
@@ -264,6 +356,58 @@ class AuraGlassCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: content,
+    );
+  }
+}
+
+/// Frosted Glassmorphic container for Modal Bottom Sheets and Dialogs.
+class AuraGlassSheet extends StatelessWidget {
+  final Widget child;
+  final bool isNightMode;
+  final EdgeInsetsGeometry padding;
+  final double blurSigma;
+
+  const AuraGlassSheet({
+    super.key,
+    required this.child,
+    this.isNightMode = false,
+    this.padding = const EdgeInsets.fromLTRB(24, 18, 24, 30),
+    this.blurSigma = 12.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isNightMode
+                  ? [
+                      const Color(0xFF1E2336).withValues(alpha: 0.76),
+                      const Color(0xFF0E111C).withValues(alpha: 0.84),
+                    ]
+                  : [
+                      Colors.white.withValues(alpha: 0.68),
+                      const Color(0xFFF3EEFF).withValues(alpha: 0.54),
+                    ],
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            border: Border.all(
+              color: isNightMode
+                  ? Colors.white.withValues(alpha: 0.22)
+                  : Colors.white.withValues(alpha: 0.78),
+              width: 1.2,
+            ),
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }

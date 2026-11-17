@@ -160,8 +160,9 @@ class _PoseDetailScreenState extends State<PoseDetailScreen> {
 
     return Scaffold(
       body: AuraBackground(
-        imageAsset: 'assets/images/backgrounds/body_detail_bg.jpg',
-        overlayOpacity: 0.82,
+        imageAsset: 'assets/images/backgrounds/body_portal_bg.jpg',
+        overlayOpacity: 0.1,
+        backgroundBlur: 0.1,
         child: SafeArea(
           child: Column(
             children: [
@@ -414,9 +415,13 @@ class _PoseDetailScreenState extends State<PoseDetailScreen> {
                                         ),
                                         selected: _selectedPresetSec == sec,
                                         selectedColor: AuraColors.primary,
-                                        backgroundColor:
-                                            AuraColors.surfaceContainerLow,
-                                        side: BorderSide.none,
+                                        backgroundColor: Colors.white
+                                            .withValues(alpha: 0.38),
+                                        side: BorderSide(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.68,
+                                          ),
+                                        ),
                                         labelStyle: TextStyle(
                                           fontFamily: 'Segoe UI',
                                           fontSize: 12,
@@ -553,9 +558,16 @@ class _PoseDetailScreenState extends State<PoseDetailScreen> {
                                           vertical: 6,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AuraColors.secondaryContainer,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.42,
+                                          ),
                                           borderRadius: BorderRadius.circular(
                                             99,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.70,
+                                            ),
                                           ),
                                         ),
                                         child: Text(

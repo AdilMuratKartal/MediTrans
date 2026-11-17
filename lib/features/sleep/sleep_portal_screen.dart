@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/audio/universal_player_bar.dart';
 import '../../core/data/seed_catalog.dart';
@@ -24,7 +25,8 @@ class SleepPortalScreen extends StatelessWidget {
       body: AuraBackground(
         imageAsset: 'assets/images/backgrounds/sleep_portal_bg.jpg',
         isNightMode: true,
-        overlayOpacity: 0.76,
+        overlayOpacity: 0.34,
+        backgroundBlur: 4.5,
         child: SafeArea(
           child: Column(
             children: [
@@ -281,23 +283,32 @@ class _SleepCategoryCard extends StatelessWidget {
               Positioned(
                 top: 12,
                 left: 14,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AuraColors.nightBg.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    badge,
-                    style: const TextStyle(
-                      fontFamily: 'Segoe UI',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                      color: AuraColors.nightAccent,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AuraColors.nightBg.withValues(alpha: 0.48),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.28),
+                        ),
+                      ),
+                      child: Text(
+                        badge,
+                        style: const TextStyle(
+                          fontFamily: 'Segoe UI',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                          color: AuraColors.nightAccent,
+                        ),
+                      ),
                     ),
                   ),
                 ),

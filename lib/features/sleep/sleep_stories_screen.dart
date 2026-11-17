@@ -81,7 +81,8 @@ class _SleepStoriesScreenState extends State<SleepStoriesScreen> {
       body: AuraBackground(
         imageAsset: story.backgroundAsset,
         isNightMode: true,
-        overlayOpacity: 0.78,
+        overlayOpacity: 0.34,
+        backgroundBlur: 4.5,
         child: SafeArea(
           child: Column(
             children: [
@@ -156,13 +157,13 @@ class _SleepStoriesScreenState extends State<SleepStoriesScreen> {
                           ),
                           selected: _selectedIndex == i,
                           selectedColor: AuraColors.nightAccent.withValues(
-                            alpha: 0.25,
+                            alpha: 0.28,
                           ),
-                          backgroundColor: Colors.white.withValues(alpha: 0.08),
+                          backgroundColor: Colors.white.withValues(alpha: 0.14),
                           side: BorderSide(
                             color: _selectedIndex == i
                                 ? AuraColors.nightAccent
-                                : Colors.transparent,
+                                : Colors.white.withValues(alpha: 0.24),
                           ),
                           labelStyle: TextStyle(
                             fontFamily: 'Segoe UI',

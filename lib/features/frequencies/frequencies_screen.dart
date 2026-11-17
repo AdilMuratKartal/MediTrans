@@ -57,7 +57,8 @@ class _FrequenciesScreenState extends State<FrequenciesScreen> {
         return Scaffold(
           body: AuraBackground(
             imageAsset: 'assets/images/backgrounds/meditation_portal_bg.jpg',
-            overlayOpacity: 0.82,
+            overlayOpacity: 0.30,
+            backgroundBlur: 4.5,
             child: SafeArea(
               child: Column(
                 children: [
@@ -123,9 +124,11 @@ class _FrequenciesScreenState extends State<FrequenciesScreen> {
                               selected: _selectedTab == tab,
                               selectedColor: AuraColors.primary,
                               backgroundColor: Colors.white.withValues(
-                                alpha: 0.76,
+                                alpha: 0.38,
                               ),
-                              side: BorderSide.none,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.68),
+                              ),
                               labelStyle: TextStyle(
                                 fontFamily: 'Segoe UI',
                                 fontSize: 13,

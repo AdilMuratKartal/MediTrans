@@ -29,23 +29,20 @@ class UniversalPlayerBar extends StatelessWidget {
     GlobalAudioController audio, {
     bool isNightMode = false,
   }) {
-    final bgColor = isNightMode ? AuraColors.nightCard : AuraColors.surface;
     final textColor = isNightMode ? AuraColors.nightText : AuraColors.onSurface;
     final accent = isNightMode ? AuraColors.nightAccent : AuraColors.primary;
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: bgColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         return ListenableBuilder(
           listenable: audio,
           builder: (context, _) {
             final activeTimer = audio.formattedSleepTimer;
             final presets = [15, 30, 45, 60, 90];
-            return Padding(
+            return AuraGlassSheet(
+              isNightMode: isNightMode,
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 30),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -115,8 +112,12 @@ class UniversalPlayerBar extends StatelessWidget {
                       for (final mins in presets)
                         ActionChip(
                           label: Text('$mins Dakika'),
-                          backgroundColor: accent.withValues(alpha: 0.12),
-                          side: BorderSide.none,
+                          backgroundColor: accent.withValues(alpha: 0.14),
+                          side: BorderSide(
+                            color: Colors.white.withValues(
+                              alpha: isNightMode ? 0.22 : 0.65,
+                            ),
+                          ),
                           labelStyle: TextStyle(
                             fontFamily: 'Segoe UI',
                             fontWeight: FontWeight.w600,
@@ -169,21 +170,18 @@ class UniversalPlayerBar extends StatelessWidget {
     GlobalAudioController audio, {
     bool isNightMode = false,
   }) {
-    final bgColor = isNightMode ? AuraColors.nightCard : AuraColors.surface;
     final textColor = isNightMode ? AuraColors.nightText : AuraColors.onSurface;
     final accent = isNightMode ? AuraColors.nightAccent : AuraColors.primary;
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: bgColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         return ListenableBuilder(
           listenable: audio,
           builder: (context, _) {
-            return Padding(
+            return AuraGlassSheet(
+              isNightMode: isNightMode,
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

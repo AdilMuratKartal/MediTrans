@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../core/audio/universal_player_bar.dart';
@@ -181,17 +182,22 @@ class _FrequencyStyleBackdropState extends State<FrequencyStyleBackdrop>
               ),
             ),
 
-          // 3. Soft sanctuary gradient overlay for typography legibility
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  tint.withValues(alpha: 0.34),
-                  const Color(0xFF151324).withValues(alpha: 0.56),
-                  const Color(0xFF0E111C).withValues(alpha: 0.84),
-                ],
+          // 3. Subtle background blur + translucent sanctuary gradient for glassmorphism
+          ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4.5, sigmaY: 4.5),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      tint.withValues(alpha: 0.24),
+                      const Color(0xFF151324).withValues(alpha: 0.38),
+                      const Color(0xFF0E111C).withValues(alpha: 0.56),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -215,16 +221,25 @@ class _FrequencyStyleBackdropState extends State<FrequencyStyleBackdrop>
               fit: BoxFit.cover,
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  tint.withValues(alpha: 0.42),
-                  const Color(0xFF151324).withValues(alpha: 0.68),
-                  const Color(0xFF0E111C).withValues(alpha: 0.88),
-                ],
+          ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.35),
+                  ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      tint.withValues(alpha: 0.30),
+                      const Color(0xFF151324).withValues(alpha: 0.48),
+                      const Color(0xFF0E111C).withValues(alpha: 0.68),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -424,78 +439,106 @@ class _FrequencyPlayerScreenState extends State<FrequencyPlayerScreen>
                                         0.92 + (_pulseController.value * 0.14);
                                     return Transform.scale(
                                       scale: scale,
-                                      child: Container(
-                                        width: _isFullScreenResonance ? 260 : 210,
-                                        height: _isFullScreenResonance ? 260 : 210,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.32,
-                                            ),
-                                            width: 1.5,
+                                      child: ClipOval(
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(
+                                            sigmaX: 10,
+                                            sigmaY: 10,
                                           ),
-                                          gradient: RadialGradient(
-                                            colors: [
-                                              AuraColors.nightAccent.withValues(
-                                                alpha: 0.42,
-                                              ),
-                                              Colors.white.withValues(alpha: 0.10),
-                                              Colors.transparent,
-                                            ],
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AuraColors.nightAccent
-                                                  .withValues(alpha: 0.28),
-                                              blurRadius: 48,
-                                              spreadRadius: 8,
-                                            ),
-                                          ],
-                                        ),
-                                        child: Center(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                item.codeLabel,
-                                                style: TextStyle(
-                                                  fontSize: _isFullScreenResonance
-                                                      ? 46
-                                                      : 38,
-                                                  fontWeight: FontWeight.w400,
-                                                  color: Colors.white,
-                                                  letterSpacing: -0.5,
+                                          child: Container(
+                                            width: _isFullScreenResonance
+                                                ? 260
+                                                : 210,
+                                            height: _isFullScreenResonance
+                                                ? 260
+                                                : 210,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.45,
                                                 ),
+                                                width: 1.5,
                                               ),
-                                              const SizedBox(height: 6),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 4,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white.withValues(
+                                              gradient: RadialGradient(
+                                                colors: [
+                                                  AuraColors.nightAccent
+                                                      .withValues(alpha: 0.36),
+                                                  Colors.white.withValues(
                                                     alpha: 0.14,
                                                   ),
-                                                  borderRadius: BorderRadius.circular(
-                                                    99,
+                                                  Colors.white.withValues(
+                                                    alpha: 0.04,
                                                   ),
-                                                ),
-                                                child: Text(
-                                                  item.isAngelSequence
-                                                      ? 'MELEK DİZİSİ'
-                                                      : 'CANLI REZONANS',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Segoe UI',
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w700,
-                                                    letterSpacing: 1.4,
-                                                    color: AuraColors.nightAccent,
-                                                  ),
-                                                ),
+                                                ],
                                               ),
-                                            ],
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AuraColors.nightAccent
+                                                      .withValues(alpha: 0.28),
+                                                  blurRadius: 48,
+                                                  spreadRadius: 8,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    item.codeLabel,
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          _isFullScreenResonance
+                                                          ? 46
+                                                          : 38,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      color: Colors.white,
+                                                      letterSpacing: -0.5,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 4,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white
+                                                          .withValues(
+                                                            alpha: 0.18,
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            99,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: Colors.white
+                                                            .withValues(
+                                                              alpha: 0.35,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      item.isAngelSequence
+                                                          ? 'MELEK DİZİSİ'
+                                                          : 'CANLI REZONANS',
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Segoe UI',
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        letterSpacing: 1.4,
+                                                        color: AuraColors
+                                                            .nightAccent,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),

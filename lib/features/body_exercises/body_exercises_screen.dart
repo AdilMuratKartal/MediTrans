@@ -44,7 +44,8 @@ class _BodyExercisesScreenState extends State<BodyExercisesScreen> {
     return Scaffold(
       body: AuraBackground(
         imageAsset: 'assets/images/backgrounds/body_portal_bg.jpg',
-        overlayOpacity: 0.80,
+        overlayOpacity: 0.30,
+        backgroundBlur: 4.5,
         child: SafeArea(
           child: Column(
             children: [
@@ -176,9 +177,11 @@ class _BodyExercisesScreenState extends State<BodyExercisesScreen> {
                                 selected: _selectedLevel == lvl,
                                 selectedColor: AuraColors.primary,
                                 backgroundColor: Colors.white.withValues(
-                                  alpha: 0.72,
+                                  alpha: 0.38,
                                 ),
-                                side: BorderSide.none,
+                                side: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.68),
+                                ),
                                 labelStyle: TextStyle(
                                   fontFamily: 'Segoe UI',
                                   fontSize: 12,
@@ -212,8 +215,13 @@ class _BodyExercisesScreenState extends State<BodyExercisesScreen> {
                                   height: 82,
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: AuraColors.surfaceContainerLow,
+                                    color: Colors.white.withValues(alpha: 0.38),
                                     borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.68,
+                                      ),
+                                    ),
                                   ),
                                   child: Image.asset(
                                     pose.illustrationAsset,

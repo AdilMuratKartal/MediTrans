@@ -36,16 +36,13 @@ class _AuraShellState extends State<AuraShell> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AuraColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         return ListenableBuilder(
           listenable: scope.notifications,
           builder: (context, _) {
             final items = scope.notifications.notifications;
-            return Padding(
+            return AuraGlassSheet(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -75,7 +72,7 @@ class _AuraShellState extends State<AuraShell> {
                       ),
                       FilledButton.tonalIcon(
                         style: FilledButton.styleFrom(
-                          backgroundColor: AuraColors.primaryFixed,
+                          backgroundColor: Colors.white.withValues(alpha: 0.45),
                           foregroundColor: AuraColors.primary,
                         ),
                         onPressed: () => scope.notifications
@@ -101,13 +98,13 @@ class _AuraShellState extends State<AuraShell> {
                       );
                     },
                   ),
-                  const Divider(),
+                  Divider(color: Colors.white.withValues(alpha: 0.55)),
                   for (final n in items.take(4))
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(
-                        backgroundColor: AuraColors.primaryFixed,
-                        child: Icon(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.white.withValues(alpha: 0.52),
+                        child: const Icon(
                           Icons.auto_awesome_rounded,
                           color: AuraColors.primary,
                           size: 18,
@@ -244,22 +241,30 @@ class _AuraShellState extends State<AuraShell> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(32),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.85),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withValues(alpha: 0.52),
+                              Colors.white.withValues(alpha: 0.28),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(32),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.70),
+                            color: Colors.white.withValues(alpha: 0.76),
+                            width: 1.2,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: AuraColors.primary.withValues(alpha: 0.12),
-                              blurRadius: 28,
+                              blurRadius: 24,
                               offset: const Offset(0, 10),
                             ),
                           ],
@@ -322,8 +327,16 @@ class _NavTabItem extends StatelessWidget {
         duration: const Duration(milliseconds: 220),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AuraColors.primaryFixed : Colors.transparent,
+          color: selected
+              ? Colors.white.withValues(alpha: 0.52)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(22),
+          border: selected
+              ? Border.all(
+                  color: Colors.white.withValues(alpha: 0.78),
+                  width: 1.0,
+                )
+              : null,
         ),
         child: Row(
           children: [

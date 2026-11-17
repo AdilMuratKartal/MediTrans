@@ -21,7 +21,8 @@ class AnonymousEntryScreen extends StatelessWidget {
         return Scaffold(
           body: AuraBackground(
             imageAsset: 'assets/images/backgrounds/meditation_portal_bg.jpg',
-            overlayOpacity: 0.85,
+            overlayOpacity: 0.30,
+            backgroundBlur: 4.5,
             child: SafeArea(
               child: Center(
                 child: SingleChildScrollView(

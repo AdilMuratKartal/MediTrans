@@ -66,7 +66,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         return Scaffold(
           body: AuraBackground(
             imageAsset: 'assets/images/backgrounds/meditation_portal_bg.jpg',
-            overlayOpacity: 0.85,
+            overlayOpacity: 0.30,
+            backgroundBlur: 4.5,
             child: SafeArea(
               child: Center(
                 child: SingleChildScrollView(
@@ -142,7 +143,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   ),
                                   filled: true,
                                   fillColor: Colors.white.withValues(
-                                    alpha: 0.72,
+                                    alpha: 0.36,
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),

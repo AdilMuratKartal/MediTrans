@@ -92,12 +92,9 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AuraColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        return Padding(
+        return AuraGlassSheet(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -164,9 +161,12 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: entry.moodCodes.contains(option.code)
-                              ? AuraColors.primaryFixed
-                              : AuraColors.surfaceContainerLow,
+                              ? AuraColors.primaryFixed.withValues(alpha: 0.72)
+                              : Colors.white.withValues(alpha: 0.44),
                           borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.72),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -248,7 +248,8 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
 
         return AuraBackground(
           imageAsset: 'assets/images/backgrounds/home_bg.jpg',
-          overlayOpacity: 0.78,
+          overlayOpacity: 0.28,
+          backgroundBlur: 4.5,
           child: SafeArea(
             bottom: false,
             child: ListView(
@@ -265,7 +266,10 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                           height: 38,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withValues(alpha: 0.78),
+                            color: Colors.white.withValues(alpha: 0.44),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.72),
+                            ),
                           ),
                           child: const Icon(
                             Icons.spa_outlined,
@@ -481,8 +485,13 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                                     vertical: 10,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.85),
+                                    color: Colors.white.withValues(alpha: 0.42),
                                     borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.72,
+                                      ),
+                                    ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -533,9 +542,12 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: AuraColors.primaryFixed.withValues(
-                                  alpha: 0.75,
+                                  alpha: 0.55,
                                 ),
                                 borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.72),
+                                ),
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -570,8 +582,11 @@ class _HomeMoodScreenState extends State<HomeMoodScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.72),
+                          color: Colors.white.withValues(alpha: 0.38),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.68),
+                          ),
                         ),
                         child: Row(
                           children: [

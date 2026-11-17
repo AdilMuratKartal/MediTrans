@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/data/models/mood_entry_model.dart';
 import '../../core/data/seed_catalog.dart';
@@ -33,12 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AuraColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Padding(
+        return AuraGlassSheet(
           padding: EdgeInsets.fromLTRB(
             24,
             20,
@@ -152,39 +150,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Yeni Alışkanlık & Rutin Ekle'),
-          content: TextField(
-            controller: habitCtrl,
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'Örn: Akşam Şükür Günlüğü',
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: AlertDialog(
+            backgroundColor: Colors.white.withValues(alpha: 0.72),
+            title: const Text('Yeni Alışkanlık & Rutin Ekle'),
+            content: TextField(
+              controller: habitCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Örn: Akşam Şükür Günlüğü',
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('İptal'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final text = habitCtrl.text.trim();
-                if (text.isNotEmpty) {
-                  final current = List<String>.from(
-                    scope.localStore.profile.habitsTr,
-                  );
-                  if (!current.contains(text)) {
-                    current.add(text);
-                    await scope.localStore.updateProfile(
-                      scope.localStore.profile.copyWith(habitsTr: current),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('İptal'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final text = habitCtrl.text.trim();
+                  if (text.isNotEmpty) {
+                    final current = List<String>.from(
+                      scope.localStore.profile.habitsTr,
                     );
+                    if (!current.contains(text)) {
+                      current.add(text);
+                      await scope.localStore.updateProfile(
+                        scope.localStore.profile.copyWith(habitsTr: current),
+                      );
+                    }
                   }
-                }
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-              child: const Text('Ekle'),
-            ),
-          ],
+                  if (ctx.mounted) Navigator.of(ctx).pop();
+                },
+                child: const Text('Ekle'),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -201,10 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showSystemSettingsSheet(BuildContext context, AppScope scope) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AuraColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         return ListenableBuilder(
           listenable: Listenable.merge([
@@ -215,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           builder: (context, _) {
             final cacheKb = (scope.mediaGateway.cachedBytes / 1024)
                 .toStringAsFixed(1);
-            return Padding(
+            return AuraGlassSheet(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -307,7 +306,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         return AuraBackground(
           imageAsset: 'assets/images/backgrounds/profile_bg.jpg',
-          overlayOpacity: 0.82,
+          overlayOpacity: 0.30,
+          backgroundBlur: 4.5,
           child: SafeArea(
             bottom: false,
             child: ListView(
@@ -421,8 +421,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: AuraColors.surfaceContainerLow,
+                                color: Colors.white.withValues(alpha: 0.36),
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.68),
+                                ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,8 +458,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: AuraColors.surfaceContainerLow,
+                                color: Colors.white.withValues(alpha: 0.36),
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.68),
+                                ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,10 +531,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             FilterChip(
                               label: Text(habit),
                               selected: _completedTodayHabits.contains(habit),
-                              selectedColor: AuraColors.primaryFixed,
+                              selectedColor: AuraColors.primaryFixed.withValues(
+                                alpha: 0.72,
+                              ),
                               checkmarkColor: AuraColors.primary,
-                              backgroundColor: AuraColors.surfaceContainerLow,
-                              side: BorderSide.none,
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.36,
+                              ),
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.68),
+                              ),
                               labelStyle: TextStyle(
                                 fontFamily: 'Segoe UI',
                                 fontSize: 13,

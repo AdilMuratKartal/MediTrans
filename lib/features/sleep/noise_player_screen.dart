@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/audio/universal_player_bar.dart';
 import '../../core/data/models/sleep_media_track_model.dart';
@@ -57,7 +58,8 @@ class _NoisePlayerScreenState extends State<NoisePlayerScreen> {
       body: AuraBackground(
         imageAsset: track.backgroundAsset,
         isNightMode: true,
-        overlayOpacity: 0.74,
+        overlayOpacity: 0.34,
+        backgroundBlur: 4.5,
         child: SafeArea(
           child: Column(
             children: [
@@ -119,52 +121,65 @@ class _NoisePlayerScreenState extends State<NoisePlayerScreen> {
                             Expanded(
                               child: GestureDetector(
                                 onTap: () => _selectNoise(i),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 260),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 18,
-                                    horizontal: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _selectedIndex == i
-                                        ? AuraColors.nightAccent.withValues(
-                                            alpha: 0.22,
-                                          )
-                                        : Colors.white.withValues(alpha: 0.07),
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color: _selectedIndex == i
-                                          ? AuraColors.nightAccent
-                                          : Colors.white.withValues(
-                                              alpha: 0.12,
-                                            ),
-                                      width: 1.4,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 10,
+                                      sigmaY: 10,
                                     ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        i == 0
-                                            ? Icons.blur_on_rounded
-                                            : Icons.graphic_eq_rounded,
-                                        color: _selectedIndex == i
-                                            ? AuraColors.nightAccent
-                                            : AuraColors.nightMuted,
-                                        size: 30,
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 260,
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        SeedCatalog.noiseTracks[i].titleTr,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 18,
+                                        horizontal: 14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _selectedIndex == i
+                                            ? AuraColors.nightAccent.withValues(
+                                                alpha: 0.24,
+                                              )
+                                            : Colors.white.withValues(
+                                                alpha: 0.10,
+                                              ),
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(
                                           color: _selectedIndex == i
-                                              ? AuraColors.nightText
-                                              : AuraColors.nightMuted,
+                                              ? AuraColors.nightAccent
+                                              : Colors.white.withValues(
+                                                  alpha: 0.22,
+                                                ),
+                                          width: 1.4,
                                         ),
                                       ),
-                                    ],
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            i == 0
+                                                ? Icons.blur_on_rounded
+                                                : Icons.graphic_eq_rounded,
+                                            color: _selectedIndex == i
+                                                ? AuraColors.nightAccent
+                                                : AuraColors.nightMuted,
+                                            size: 30,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            SeedCatalog.noiseTracks[i].titleTr,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                              color: _selectedIndex == i
+                                                  ? AuraColors.nightText
+                                                  : AuraColors.nightMuted,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
